@@ -2,13 +2,13 @@
 .jellyfin-single-movie {
   display: flex;              /* Poster on the left, text on the right */
   align-items: flex-start;    /* Top-align the poster and text */
-  max-width: 600px;           /* Limit width so it doesn't stretch too large */
+  max-width: 400px;           /* Limit width so it doesn't stretch too large */
   margin: 10px auto;          /* Center horizontally (optional) */
 }
 
 /* Poster thumbnail */
 .jellyfin-thumb {
-  width: 120px;               /* Smaller width to prevent it from dominating */
+  width: 100px;               /* Smaller width to prevent it from dominating */
   height: auto;
   border-radius: 6px;
   margin-right: 10px;         /* Spacing between poster and text */
