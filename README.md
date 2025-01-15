@@ -1,6 +1,6 @@
 
 # MMM-Jellyfin
-
+Testing and tweaking 'Now playing'
 A MagicMirror module that integrates with a Jellyfin server to display **recently added** items or **now playing** content. The module dynamically switches between **"Recently Added"** and **"Now Playing"**, showing detailed information and progress for the currently playing item when applicable.
 
 ## Features
@@ -43,7 +43,7 @@ Add the module to your MagicMirror `config/config.js` file. Here’s an example:
   position: "bottom_right", // or any other region
   config: {
     apiKey: "YOUR_API_KEY",                // Jellyfin API key
-    serverUrl: "http://192.168.1.96:8096", // Jellyfin server URL
+    serverUrl: "http://XXX.XXX.X.XX:8096", // Jellyfin server URL
     userId: "YOUR_USER_ID",                // Jellyfin user ID
     contentType: "Movie",                  // e.g., "Movie", "Series", etc.
     maxItems: 5,                           // Number of recently added items to fetch
