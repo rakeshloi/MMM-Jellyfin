@@ -1,45 +1,65 @@
-/* Outer container for a single movie */
-.jellyfin-single-movie {
-  display: flex;              /* Poster on the left, text on the right */
-  align-items: flex-start;    /* Top-align the poster and text */
-  max-width: 400px;           /* Limit width so it doesn't stretch too large */
-  margin: 10px auto;          /* Center horizontally (optional) */
+/* The bounding box for the entire module */
+.jellyfin-wrapper {
+  width: 400px;             /* Fixed width */
+  height: 350px;            /* Fixed height */
+  overflow: hidden;         /* Hide anything that overflows (or use 'auto' + scrollbars) */
+  box-sizing: border-box;   /* Ensure padding doesn't push content out of the box */
+  margin: 0 auto;           /* Center in the region if desired */
+  border: 1px solid #333;   /* Optional border to visualize the bounding box */
+  background-color: rgba(0, 0, 0, 0.4); /* Slight background if you want */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Poster thumbnail */
+/* Container for poster + text inside the 400×350 box */
+.jellyfin-container {
+  display: flex;            /* Place poster on left, details on right */
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+/* Poster image on the left side */
 .jellyfin-thumb {
-  width: 100px;               /* Smaller width to prevent it from dominating */
+  width: 100px;             /* Keep this fairly small */
   height: auto;
-  border-radius: 6px;
-  margin-right: 10px;         /* Spacing between poster and text */
-  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+  flex-shrink: 0;           /* Don't let the image shrink further if text is long */
+  border-radius: 5px;
+  margin-right: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.3);
 }
 
-/* Details container on the right */
+/* Details on the right side */
 .jellyfin-details {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  text-align: left;           /* Left-align text, if you prefer */
+  flex-grow: 1;             /* Let the details take remaining space */
+  overflow: hidden;         /* Hide or 'auto' if you prefer a scrollbar for long text */
+  text-align: left;
 }
 
-/* Title heading */
+/* Title */
 .jellyfin-title {
-  font-size: 1.2em;
-  margin-bottom: 5px;
-}
-
-/* Rating and Premiere date text */
-.jellyfin-rating,
-.jellyfin-premiere-date {
-  color: #ccc;
-  font-size: 0.9em;
+  font-size: 1em;           /* Smaller font to fit in 350px height */
   margin-bottom: 4px;
 }
 
-/* Overview text (description) */
+/* Certificate and Date */
+.jellyfin-rating,
+.jellyfin-premiere-date {
+  font-size: 0.8em;
+  color: #ccc;
+  margin-bottom: 4px;
+}
+
+/* Overview text */
 .jellyfin-overview {
-  font-size: 0.9em;
-  margin-top: 5px;
-  line-height: 1.3em;
+  font-size: 0.8em;
+  line-height: 1.2em;
+  overflow: hidden;         /* Clip long text or use 'auto' to scroll */
+  margin-top: 6px;
 }
