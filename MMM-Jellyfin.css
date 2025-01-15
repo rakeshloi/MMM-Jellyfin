@@ -1,33 +1,45 @@
+/* Outer container for a single movie */
 .jellyfin-single-movie {
+  display: flex;              /* Poster on the left, text on the right */
+  align-items: flex-start;    /* Top-align the poster and text */
+  max-width: 600px;           /* Limit width so it doesn't stretch too large */
+  margin: 10px auto;          /* Center horizontally (optional) */
+}
+
+/* Poster thumbnail */
+.jellyfin-thumb {
+  width: 120px;               /* Smaller width to prevent it from dominating */
+  height: auto;
+  border-radius: 6px;
+  margin-right: 10px;         /* Spacing between poster and text */
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Details container on the right */
+.jellyfin-details {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  margin: 10px;
+  justify-content: flex-start;
+  text-align: left;           /* Left-align text, if you prefer */
 }
 
-.jellyfin-thumb {
-  width: 150px;
-  border-radius: 6px;
-  margin-bottom: 10px;
-  box-shadow: 0px 2px 5px rgba(0,0,0,0.3);
-}
-
+/* Title heading */
 .jellyfin-title {
   font-size: 1.2em;
-  margin: 5px 0;
+  margin-bottom: 5px;
 }
 
+/* Rating and Premiere date text */
 .jellyfin-rating,
 .jellyfin-premiere-date {
-  font-size: 0.9em;
-  margin: 2px 0;
   color: #ccc;
+  font-size: 0.9em;
+  margin-bottom: 4px;
 }
 
+/* Overview text (description) */
 .jellyfin-overview {
   font-size: 0.9em;
-  margin: 5px 0;
-  max-width: 300px;
+  margin-top: 5px;
   line-height: 1.3em;
 }
