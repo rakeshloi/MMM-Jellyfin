@@ -24,16 +24,14 @@ Module.register("MMM-Jellyfin", {
     this.currentIndex = 0;
     this.offline = false;
 
-    this.getData(); // Fetch "Recently Added" data immediately
+    this.getData();
 
-    // Refresh "Recently Added" data periodically
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
       }
     }, this.config.updateInterval);
 
-    // Rotate through "Recently Added" items
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
@@ -41,14 +39,12 @@ Module.register("MMM-Jellyfin", {
       }
     }, this.config.rotateInterval);
 
-    // Check "Now Playing" periodically
     setInterval(() => {
       if (!this.offline) {
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
 
-    // Retry fetching data when offline
     setInterval(() => {
       if (this.offline) {
         this.getData();
@@ -76,7 +72,7 @@ Module.register("MMM-Jellyfin", {
       if (payload.type === "nowPlaying") {
         if (payload.data) {
           this.nowPlaying = payload.data;
-          this.items = []; // Clear "Recently Added" while "Now Playing" is active
+          this.items = [];
           this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
           this.nowPlaying = null;
@@ -99,7 +95,7 @@ Module.register("MMM-Jellyfin", {
   },
 
   updateHeader(text) {
-    this.data.header = text; // Dynamically update the header text
+    this.data.header = text;
     this.updateDom();
   },
 
@@ -107,14 +103,13 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Completely hide DOM if offline
     if (this.offline) {
-      return wrapper; // Empty wrapper when offline
+      return wrapper;
     }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML = ""; // Do not show any content while loading
+      wrapper.innerHTML = "";
       return wrapper;
     }
 
@@ -123,8 +118,6 @@ Module.register("MMM-Jellyfin", {
     container.style.alignItems = "center";
 
     const posterWrapper = document.createElement("div");
-    posterWrapper.style.display = "flex";
-    posterWrapper.style.alignItems = "center";
     posterWrapper.style.marginRight = "10px";
 
     const poster = document.createElement("img");
@@ -132,7 +125,6 @@ Module.register("MMM-Jellyfin", {
     poster.style.width = "120px";
     poster.style.height = "200px";
     poster.style.objectFit = "cover";
-
     posterWrapper.appendChild(poster);
 
     const details = document.createElement("div");
@@ -145,13 +137,15 @@ Module.register("MMM-Jellyfin", {
     title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
+    // Display Certificate Image
     if (item.officialRating) {
-      const rating = document.createElement("div");
-      rating.textContent = `Rating: ${item.officialRating}`;
-      rating.style.fontSize = "0.8em";
-      rating.style.color = "#ccc";
-      rating.style.marginBottom = "4px";
-      details.appendChild(rating);
+      const certificateImg = document.createElement("img");
+      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+      certificateImg.alt = item.officialRating;
+      certificateImg.style.width = "50px";
+      certificateImg.style.height = "auto";
+      certificateImg.style.marginBottom = "10px";
+      details.appendChild(certificateImg);
     }
 
     if (item.premiereDate) {
@@ -170,47 +164,6 @@ Module.register("MMM-Jellyfin", {
       overview.style.fontSize = "0.75em";
       overview.style.lineHeight = "1.2em";
       details.appendChild(overview);
-    }
-
-    // Add progress bar for "Now Playing"
-    if (this.nowPlaying) {
-      const progressContainer = document.createElement("div");
-      progressContainer.style.marginTop = "10px";
-
-      const progressPct =
-        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
-
-      const progressBar = document.createElement("div");
-      progressBar.style.height = "10px";
-      progressBar.style.background = "#444";
-      progressBar.style.width = "100%";
-      progressBar.style.borderRadius = "5px";
-
-      const progressFill = document.createElement("div");
-      progressFill.style.width = `${progressPct}%`;
-      progressFill.style.height = "100%";
-      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
-      progressFill.style.borderRadius = "5px";
-      progressBar.appendChild(progressFill);
-
-      const timeRemaining =
-        Math.max(
-          0,
-          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-        ) / 10000000;
-      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
-        Math.floor(timeRemaining % 60)
-      }s remaining`;
-
-      const timeLabel = document.createElement("div");
-      timeLabel.textContent = timeRemainingText;
-      timeLabel.style.fontSize = "0.75em";
-      timeLabel.style.color = "#ccc";
-      timeLabel.style.marginTop = "5px";
-
-      progressContainer.appendChild(progressBar);
-      progressContainer.appendChild(timeLabel);
-      details.appendChild(progressContainer);
     }
 
     container.appendChild(posterWrapper);

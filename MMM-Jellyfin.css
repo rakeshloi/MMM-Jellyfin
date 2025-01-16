@@ -2,7 +2,7 @@
   /* Right-align the entire module */
   display: flex;
   flex-direction: row; /* Poster on left, text on right */
-  justify-content: flex-end; 
+  justify-content: flex-end;
   align-items: flex-start;
 
   /* Let content dictate size, but cap max width if you want */
@@ -11,8 +11,8 @@
   height: auto;
 
   /* Force right edge in the region */
-  margin-left: auto; 
-  margin-right: 0;   
+  margin-left: auto;
+  margin-right: 0;
   padding: 0;
   box-sizing: border-box;
   position: relative;
@@ -32,12 +32,26 @@
   box-sizing: border-box;
 }
 
-/* 
-   If you want the text in the details 
-   to be visually right-aligned, uncomment:
-*/
-/*
 .jellyfin-details {
-  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
-*/
+
+.jellyfin-certificate {
+  /* Style the certificate images */
+  display: inline-block;
+  width: 50px;
+  height: auto;
+  margin: 5px 0 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.jellyfin-poster {
+  width: 120px;
+  height: 200px;
+  object-fit: cover;
+  margin-right: 10px;
+}
