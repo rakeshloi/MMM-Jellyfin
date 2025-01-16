@@ -26,6 +26,7 @@ Module.register("MMM-Jellyfin", {
 
     this.getData();
 
+    // Periodic updates
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
@@ -89,7 +90,7 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader(""); // Clear the header when offline
+      this.updateHeader("");
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
@@ -114,55 +115,40 @@ Module.register("MMM-Jellyfin", {
     }
 
     const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.alignItems = "center";
+    container.className = "jellyfin-container";
 
     const posterWrapper = document.createElement("div");
-    posterWrapper.style.marginRight = "10px";
+    posterWrapper.className = "jellyfin-poster-wrapper";
 
     const poster = document.createElement("img");
+    poster.className = "jellyfin-poster";
     poster.src = item.poster || "";
-    poster.style.width = "120px";
-    poster.style.height = "200px";
-    poster.style.objectFit = "cover";
+
     posterWrapper.appendChild(poster);
 
     const details = document.createElement("div");
-    details.style.display = "flex";
-    details.style.flexDirection = "column";
+    details.className = "jellyfin-details";
 
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
-    title.style.fontSize = "0.9em";
-    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
-    // Display Certificate Image
-    if (item.officialRating) {
-      const certificateImg = document.createElement("img");
-      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
-      certificateImg.alt = item.officialRating;
-      certificateImg.style.width = "50px";
-      certificateImg.style.height = "auto";
-      certificateImg.style.marginBottom = "10px";
-      details.appendChild(certificateImg);
-    }
+    if (item.officialRatingImage) {
+      const certificateContainer = document.createElement("div");
+      certificateContainer.className = "jellyfin-certificate-container";
 
-    if (item.premiereDate) {
-      const date = document.createElement("div");
-      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
-      date.textContent = `Premiere: ${formattedDate}`;
-      date.style.fontSize = "0.8em";
-      date.style.color = "#ccc";
-      date.style.marginBottom = "4px";
-      details.appendChild(date);
+      const certificateImage = document.createElement("img");
+      certificateImage.className = "jellyfin-certificate";
+      certificateImage.src = item.officialRatingImage;
+
+      certificateContainer.appendChild(certificateImage);
+      details.appendChild(certificateContainer);
     }
 
     if (item.overview) {
       const overview = document.createElement("p");
-      overview.textContent = item.overview || "No description available.";
-      overview.style.fontSize = "0.75em";
-      overview.style.lineHeight = "1.2em";
+      overview.className = "jellyfin-overview";
+      overview.textContent = item.overview;
       details.appendChild(overview);
     }
 

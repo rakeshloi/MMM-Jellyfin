@@ -1,6 +1,6 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Poster on the left, text and certs on the right */
+  flex-direction: row;
   justify-content: flex-end;
   align-items: flex-start;
   width: auto;
@@ -8,85 +8,52 @@
   margin-left: auto;
   margin-right: 0;
   padding: 0;
-  box-sizing: border-box;
   position: relative;
   overflow: visible;
-  background: none;
 }
 
 .jellyfin-container {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  justify-content: flex-start;
   width: auto;
-  height: auto;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+}
+
+.jellyfin-poster-wrapper {
+  margin-right: 10px;
+}
+
+.jellyfin-poster {
+  width: 120px;
+  height: 200px;
+  object-fit: cover;
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  width: calc(100% - 140px); /* Allow some width for the poster */
-  position: relative;
+  width: 100%;
 }
 
-.jellyfin-poster {
-  width: 100px;
-  height: 160px;
-  object-fit: cover;
-  margin-right: 10px;
+.jellyfin-overview {
+  font-size: 0.75em;
+  line-height: 1.2em;
+  max-height: 3.6em; /* Limit to 3 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
 }
 
 .jellyfin-certificate-container {
   display: flex;
-  justify-content: flex-end; /* Right-align the certs */
+  justify-content: flex-end; /* Align certificate image to the right */
   align-items: center;
   margin-top: 5px;
-  width: 100%; /* Occupy the full width of the container */
 }
 
 .jellyfin-certificate {
-  display: inline-block;
   width: 30px;
   height: auto;
-  margin-left: 10px; /* Add spacing between certificates */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  border-radius: 4px;
-}
-
-.jellyfin-overview {
-  max-height: 3.6em; /* Restrict to 3 lines */
-  line-height: 1.2em;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  position: relative;
-}
-
-.jellyfin-overview:hover {
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-
-.jellyfin-progress-bar-container {
-  margin-top: 10px;
-  width: 100%;
-}
-
-.jellyfin-progress-bar {
-  height: 8px;
-  background: #444;
-  width: 100%;
-  border-radius: 4px;
-  position: relative;
-}
-
-.jellyfin-progress-bar-fill {
-  height: 100%;
-  background: #0f0;
-  border-radius: 4px;
+  margin-left: 10px;
 }
