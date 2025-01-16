@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 1 * 60 * 1000, // 1 mins
+    updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
   },
@@ -57,8 +57,7 @@ Module.register("MMM-Jellyfin", {
       this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
-        this.nowPlaying = payload.data;
-        this.items = [];
+        this.fetchNowPlayingDetails(payload.data);
       } else if (payload.type === "recentlyAdded") {
         this.nowPlaying = null;
         this.items = payload.data || [];
@@ -71,22 +70,39 @@ Module.register("MMM-Jellyfin", {
     }
   },
 
+  async fetchNowPlayingDetails(nowPlayingData) {
+    try {
+      const response = await fetch(
+        `${this.config.serverUrl}/Items/${nowPlayingData.id}`,
+        {
+          headers: { "X-Emby-Token": this.config.apiKey },
+        }
+      );
+      const details = await response.json();
+      this.nowPlaying = { ...nowPlayingData, ...details };
+      this.updateDom();
+    } catch (error) {
+      console.error("Error fetching now playing details:", error);
+    }
+  },
+
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
     // Add the dynamic heading
     const heading = document.createElement("h1");
-    heading.style.fontSize = "1.2em";
-    heading.style.margin = "0 0 10px 0";
-    heading.style.textAlign = "center";
+    heading.style.fontSize = "1em";
+    heading.style.margin = "0";
+    heading.style.textAlign = "right";
+    heading.style.borderBottom = "2px solid #fff"; // Add a line underneath
+    heading.style.paddingBottom = "5px";
 
     if (this.offline) {
       wrapper.innerHTML = "Jellyfin is offline...";
       return wrapper;
     }
 
-    // Dynamic heading based on current state
     if (this.nowPlaying) {
       heading.textContent = "Now Playing on Jellyfin";
     } else {
@@ -102,6 +118,11 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
+    container.style.flexDirection = "column"; // Ensure vertical stacking
+    container.style.marginTop = "10px"; // Add spacing below heading
+
+    const contentContainer = document.createElement("div");
+    contentContainer.style.display = "flex";
 
     const poster = document.createElement("img");
     poster.src = item.poster;
@@ -146,28 +167,20 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
+    contentContainer.appendChild(poster);
+    contentContainer.appendChild(details);
+    container.appendChild(contentContainer);
+
     // Add progress bar for "Now Playing"
     if (this.nowPlaying) {
       const progressPct =
         (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
 
-      const timeRemaining =
-        Math.max(
-          0,
-          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-        ) / 10000000; // Convert ticks to seconds
-
-      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
-        Math.floor(timeRemaining % 60)
-      }s remaining`;
-
-      const progressContainer = document.createElement("div");
-      progressContainer.style.marginTop = "10px";
-
       const progressBar = document.createElement("div");
+      progressBar.style.marginTop = "10px";
       progressBar.style.height = "10px";
       progressBar.style.background = "#444";
-      progressBar.style.width = "200px";
+      progressBar.style.width = "100%";
       progressBar.style.position = "relative";
 
       const progressFill = document.createElement("div");
@@ -176,19 +189,9 @@ Module.register("MMM-Jellyfin", {
       progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
       progressBar.appendChild(progressFill);
 
-      const timeRemainingLabel = document.createElement("div");
-      timeRemainingLabel.textContent = timeRemainingText;
-      timeRemainingLabel.style.fontSize = "0.75em";
-      timeRemainingLabel.style.color = "#ccc";
-      timeRemainingLabel.style.marginTop = "5px";
-
-      progressContainer.appendChild(progressBar);
-      progressContainer.appendChild(timeRemainingLabel);
-      details.appendChild(progressContainer);
+      container.appendChild(progressBar);
     }
 
-    container.appendChild(poster);
-    container.appendChild(details);
     wrapper.appendChild(container);
 
     return wrapper;
