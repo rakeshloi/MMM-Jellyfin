@@ -1,22 +1,18 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-end;
-  align-items: flex-start;
-  width: auto;
-  max-width: 450px;
-  margin-left: auto;
-  margin-right: 0;
+  flex-direction: column; /* Stack everything */
+  align-items: center; /* Center-align the module content */
+  max-width: 400px; /* Limit width of the module */
+  margin: 0 auto; /* Center horizontally */
   padding: 0;
-  position: relative;
-  overflow: visible;
+  overflow: hidden;
 }
 
 .jellyfin-container {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
-  width: auto;
+  width: 100%; /* Ensure it fits within the wrapper */
 }
 
 .jellyfin-poster-wrapper {
@@ -32,7 +28,7 @@
 .jellyfin-details {
   display: flex;
   flex-direction: column;
-  width: 100%;
+  flex: 1; /* Take the remaining space */
 }
 
 .jellyfin-overview {
@@ -55,5 +51,4 @@
 .jellyfin-certificate {
   width: 30px;
   height: auto;
-  margin-left: 10px;
 }
