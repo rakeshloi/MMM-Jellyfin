@@ -175,6 +175,47 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
+    // Add progress bar for "Now Playing"
+    if (this.nowPlaying) {
+      const progressContainer = document.createElement("div");
+      progressContainer.style.marginTop = "10px";
+
+      const progressPct =
+        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
+
+      const progressBar = document.createElement("div");
+      progressBar.style.height = "10px";
+      progressBar.style.background = "#444";
+      progressBar.style.width = "100%";
+      progressBar.style.borderRadius = "5px";
+
+      const progressFill = document.createElement("div");
+      progressFill.style.width = `${progressPct}%`;
+      progressFill.style.height = "100%";
+      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
+      progressFill.style.borderRadius = "5px";
+      progressBar.appendChild(progressFill);
+
+      const timeRemaining =
+        Math.max(
+          0,
+          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
+        ) / 10000000; // Convert ticks to seconds
+      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
+        Math.floor(timeRemaining % 60)
+      }s remaining`;
+
+      const timeLabel = document.createElement("div");
+      timeLabel.textContent = timeRemainingText;
+      timeLabel.style.fontSize = "0.75em";
+      timeLabel.style.color = "#ccc";
+      timeLabel.style.marginTop = "5px";
+
+      progressContainer.appendChild(progressBar);
+      progressContainer.appendChild(timeLabel);
+      details.appendChild(progressContainer);
+    }
+
     container.appendChild(poster);
     container.appendChild(details);
     wrapper.appendChild(container);
