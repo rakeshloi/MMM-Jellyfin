@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 10 * 60 * 1000, // Fetch new data every minute
+    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
     rotateInterval: 30 * 1000, // Rotate items every 30 seconds
     nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
     retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
@@ -107,14 +107,14 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
+    // Completely hide DOM if offline
     if (this.offline) {
-      wrapper.innerHTML = "Jellyfin is offline...";
-      return wrapper;
+      return wrapper; // Empty wrapper when offline
     }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML = "Loading Jellyfin data...";
+      wrapper.innerHTML = ""; // Do not show any content while loading
       return wrapper;
     }
 
@@ -172,6 +172,7 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
+    // Add progress bar for "Now Playing"
     if (this.nowPlaying) {
       const progressContainer = document.createElement("div");
       progressContainer.style.marginTop = "10px";
