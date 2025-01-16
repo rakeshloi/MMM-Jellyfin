@@ -1,16 +1,10 @@
 .jellyfin-wrapper {
-  /* Right-align the entire module */
   display: flex;
-  flex-direction: row; /* Poster on left, text on right */
+  flex-direction: row; /* Poster on the left, details on the right */
   justify-content: flex-end;
   align-items: flex-start;
-
-  /* Let content dictate size, but cap max width if you want */
   width: auto;
   max-width: 450px;
-  height: auto;
-
-  /* Force right edge in the region */
   margin-left: auto;
   margin-right: 0;
   padding: 0;
@@ -36,18 +30,18 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-end; /* Align content, including the certificate, to the right */
-  text-align: right; /* Ensure text aligns to the right */
+  align-items: flex-end; /* Ensure all content aligns to the right */
+  text-align: right; /* Align text content to the right */
+  width: 100%; /* Let it occupy the full available width */
 }
 
 .jellyfin-certificate {
-  /* Style the certificate images */
-  display: inline-block;
-  width: 25px; /* Keep the adjusted smaller size */
+  width: 35px; /* Adjusted size for a smaller certificate */
   height: auto;
-  margin: 5px 0 10px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 5px 0; /* Small spacing for aesthetic alignment */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
   border-radius: 4px;
+  align-self: flex-end; /* Ensures the certificate image is aligned to the right */
 }
 
 .jellyfin-poster {

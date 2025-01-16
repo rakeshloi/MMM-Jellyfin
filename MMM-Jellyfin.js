@@ -138,13 +138,12 @@ Module.register("MMM-Jellyfin", {
     details.appendChild(title);
 
     // Display Certificate Image
+    // Inside your getDom function, ensure the certificate image is styled with the class:
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
       certificateImg.alt = item.officialRating;
-      certificateImg.style.width = "50px";
-      certificateImg.style.height = "auto";
-      certificateImg.style.marginBottom = "10px";
+      certificateImg.className = "jellyfin-certificate"; // Apply the class here
       details.appendChild(certificateImg);
     }
 
