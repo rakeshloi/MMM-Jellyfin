@@ -93,13 +93,13 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader(`${this.config.title}: Jellyfin is offline`);
+      this.updateHeader(""); // Clear the header when offline
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
 
   updateHeader(text) {
-    this.data.header = text;
+    this.data.header = text; // Dynamically update the header text
     this.updateDom();
   },
 
