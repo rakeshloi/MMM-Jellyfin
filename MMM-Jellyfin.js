@@ -76,13 +76,9 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Add the dynamic heading
-    const heading = document.createElement("div");
-    heading.className = "module-heading";
-    heading.style.fontSize = "1.2em";
-    heading.style.marginBottom = "10px";
-    heading.style.textAlign = "center";
-    heading.style.width = "100%";
+    // Add the standard MagicMirror module heading
+    const heading = document.createElement("header");
+    heading.className = "module-header"; // Use MagicMirror's default class for headers
 
     if (this.offline) {
       heading.textContent = `${this.config.title}: Jellyfin is offline`;
