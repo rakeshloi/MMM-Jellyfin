@@ -36,13 +36,14 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: flex-end; /* Align content, including the certificate, to the right */
+  text-align: right; /* Ensure text aligns to the right */
 }
 
 .jellyfin-certificate {
   /* Style the certificate images */
   display: inline-block;
-  width: 50px;
+  width: 25px; /* Keep the adjusted smaller size */
   height: auto;
   margin: 5px 0 10px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
