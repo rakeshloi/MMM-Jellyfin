@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 10 * 60 * 1000, // 10 mins
+    updateInterval: 1 * 60 * 1000, // 1 mins
     rotateInterval: 30 * 1000, // 30 secs
     nowPlayingCheckInterval: 15 * 1000, // 15 secs for now playing updates
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
