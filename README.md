@@ -1,6 +1,7 @@
 
 # MMM-Jellyfin
 Testing and tweaking 'Now playing'.
+Everything else works and was tested on a RPi 5.
 
 A MagicMirror module that integrates with a Jellyfin server to display **recently added** items or **now playing** content. The module dynamically switches between **"Recently Added"** and **"Now Playing"**, showing detailed information and progress for the currently playing item when applicable.
 
