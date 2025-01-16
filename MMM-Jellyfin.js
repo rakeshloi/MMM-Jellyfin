@@ -134,15 +134,29 @@ Module.register("MMM-Jellyfin", {
 
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
+    title.style.marginBottom = "5px";
     details.appendChild(title);
 
+    // Display certificate as an image
     if (item.officialRatingImage) {
       const ratingImage = document.createElement("img");
       ratingImage.src = item.officialRatingImage;
       ratingImage.style.width = "30px";
       ratingImage.style.height = "auto";
-      ratingImage.style.marginTop = "5px";
+      ratingImage.style.marginBottom = "5px";
+      ratingImage.style.alignSelf = "flex-end"; // Right-align the image
       details.appendChild(ratingImage);
+    }
+
+    // Display premiere date
+    if (item.premiereDate) {
+      const premiereDate = document.createElement("div");
+      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
+      premiereDate.textContent = `Premiere: ${formattedDate}`;
+      premiereDate.style.fontSize = "0.8em";
+      premiereDate.style.color = "#ccc";
+      premiereDate.style.marginBottom = "5px";
+      details.appendChild(premiereDate);
     }
 
     if (item.overview) {

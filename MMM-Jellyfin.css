@@ -7,9 +7,9 @@
   padding: 0;
 }
 
-.jellyfin-details {
+.jellyfin-container {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
 }
 
 .jellyfin-details h2 {
@@ -17,14 +17,9 @@
   margin: 0;
 }
 
-.jellyfin-details p {
-  font-size: 0.75em;
-  line-height: 1.2em;
-  margin: 5px 0;
-}
-
 .jellyfin-details img {
   margin-top: 5px;
-  display: block;
-  margin-left: auto; /* Align image to the right */
+  align-self: flex-end; /* Align certificate image to the right */
+  max-width: 30px;
+  height: auto;
 }
