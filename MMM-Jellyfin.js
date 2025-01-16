@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 1 * 60 * 1000, // 10 mins
+    updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
   },
@@ -89,8 +89,8 @@ Module.register("MMM-Jellyfin", {
 
       const poster = document.createElement("img");
       poster.src = this.nowPlaying.poster;
-      poster.style.width = "120px";
-      poster.style.height = "200px";
+      poster.style.width = "150px";
+      poster.style.height = "auto";
       poster.style.objectFit = "cover";
       poster.style.marginRight = "10px";
 
@@ -135,8 +135,8 @@ Module.register("MMM-Jellyfin", {
 
     const poster = document.createElement("img");
     poster.src = item.poster;
-    poster.style.width = "120px";
-    poster.style.height = "200px";
+    poster.style.width = "150px";
+    poster.style.height = "auto";
     poster.style.objectFit = "cover";
     poster.style.marginRight = "10px";
 
