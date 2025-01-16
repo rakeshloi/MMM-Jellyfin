@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000,
-    rotateInterval: 30 * 1000,
-    nowPlayingCheckInterval: 15 * 1000,
-    retryInterval: 5 * 60 * 1000,
-    title: "Jellyfin",
+    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
+    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
+    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
+    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
+    title: "Jellyfin", // Default module title
   },
 
   getStyles() {
@@ -89,7 +89,7 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader("");
+      this.updateHeader(""); // Clear the header when offline
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
@@ -125,7 +125,6 @@ Module.register("MMM-Jellyfin", {
     poster.style.width = "120px";
     poster.style.height = "200px";
     poster.style.objectFit = "cover";
-
     posterWrapper.appendChild(poster);
 
     const details = document.createElement("div");
@@ -134,37 +133,36 @@ Module.register("MMM-Jellyfin", {
 
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
-    title.style.marginBottom = "5px";
+    title.style.fontSize = "0.9em";
+    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
-    // Display certificate as an image
-    if (item.officialRatingImage) {
-      const ratingImage = document.createElement("img");
-      ratingImage.src = item.officialRatingImage;
-      ratingImage.style.width = "30px";
-      ratingImage.style.height = "auto";
-      ratingImage.style.marginBottom = "5px";
-      ratingImage.style.alignSelf = "flex-end"; // Right-align the image
-      details.appendChild(ratingImage);
+    // Display Certificate Image
+    if (item.officialRating) {
+      const certificateImg = document.createElement("img");
+      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+      certificateImg.alt = item.officialRating;
+      certificateImg.style.width = "50px";
+      certificateImg.style.height = "auto";
+      certificateImg.style.marginBottom = "10px";
+      details.appendChild(certificateImg);
     }
 
-    // Display premiere date
     if (item.premiereDate) {
-      const premiereDate = document.createElement("div");
+      const date = document.createElement("div");
       const formattedDate = new Date(item.premiereDate).toLocaleDateString();
-      premiereDate.textContent = `Premiere: ${formattedDate}`;
-      premiereDate.style.fontSize = "0.8em";
-      premiereDate.style.color = "#ccc";
-      premiereDate.style.marginBottom = "5px";
-      details.appendChild(premiereDate);
+      date.textContent = `Premiere: ${formattedDate}`;
+      date.style.fontSize = "0.8em";
+      date.style.color = "#ccc";
+      date.style.marginBottom = "4px";
+      details.appendChild(date);
     }
 
     if (item.overview) {
       const overview = document.createElement("p");
-      overview.textContent = item.overview;
+      overview.textContent = item.overview || "No description available.";
       overview.style.fontSize = "0.75em";
       overview.style.lineHeight = "1.2em";
-      overview.style.margin = "5px 0";
       details.appendChild(overview);
     }
 

@@ -1,25 +1,57 @@
 .jellyfin-wrapper {
+  /* Right-align the entire module */
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  max-width: 400px;
-  margin: 0 auto;
+  flex-direction: row; /* Poster on left, text on right */
+  justify-content: flex-end;
+  align-items: flex-start;
+
+  /* Let content dictate size, but cap max width if you want */
+  width: auto;
+  max-width: 450px;
+  height: auto;
+
+  /* Force right edge in the region */
+  margin-left: auto;
+  margin-right: 0;
   padding: 0;
+  box-sizing: border-box;
+  position: relative;
+  overflow: visible;
+  background: none;
 }
 
 .jellyfin-container {
   display: flex;
   flex-direction: row;
-}
-
-.jellyfin-details h2 {
-  font-size: 1em;
-  margin: 0;
-}
-
-.jellyfin-details img {
-  margin-top: 5px;
-  align-self: flex-end; /* Align certificate image to the right */
-  max-width: 30px;
+  align-items: flex-start;
+  justify-content: flex-start;
+  width: auto;
   height: auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.jellyfin-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.jellyfin-certificate {
+  /* Style the certificate images */
+  display: inline-block;
+  width: 50px;
+  height: auto;
+  margin: 5px 0 10px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.jellyfin-poster {
+  width: 120px;
+  height: 200px;
+  object-fit: cover;
+  margin-right: 10px;
 }
