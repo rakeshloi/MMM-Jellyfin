@@ -5,8 +5,8 @@ Module.register("MMM-Jellyfin", {
     userId: "",
     parentId: "",
     contentType: "Movie",
-    maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every 1 minutes
+    maxItems: 5,
+    updateInterval: 10 * 60 * 1000, // Fetch new data every 10 minutes
     rotateInterval: 30 * 1000, // Rotate items every 30 seconds
     nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
     retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
@@ -30,7 +30,6 @@ Module.register("MMM-Jellyfin", {
     // Periodically refresh "Recently Added" data
     setInterval(() => {
       if (!this.nowPlaying) {
-        console.log("[MMM-Jellyfin] Fetching recently added data...");
         this.getData();
       }
     }, this.config.updateInterval);
@@ -39,7 +38,6 @@ Module.register("MMM-Jellyfin", {
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
-        console.log(`[MMM-Jellyfin] Rotating to index: ${this.currentIndex}`);
         this.updateDom();
       }
     }, this.config.rotateInterval);
@@ -47,7 +45,6 @@ Module.register("MMM-Jellyfin", {
     // Check for "Now Playing" updates
     setInterval(() => {
       if (!this.offline) {
-        console.log("[MMM-Jellyfin] Checking now playing...");
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
@@ -55,7 +52,6 @@ Module.register("MMM-Jellyfin", {
     // Retry fetching data if offline
     setInterval(() => {
       if (this.offline) {
-        console.log("[MMM-Jellyfin] Retrying connection to Jellyfin...");
         this.getData();
       }
     }, this.config.retryInterval);
@@ -80,30 +76,23 @@ Module.register("MMM-Jellyfin", {
 
       if (payload.type === "nowPlaying") {
         if (payload.data) {
-          console.log("[MMM-Jellyfin] Now playing detected:", payload.data);
-          this.nowPlaying = payload.data; // Update with full details
+          this.nowPlaying = payload.data;
           this.items = []; // Clear "Recently Added" while "Now Playing" is active
           this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
-          // If no "Now Playing" data, switch back to "Recently Added"
-          console.log("[MMM-Jellyfin] No now playing data, reverting to recently added.");
           this.nowPlaying = null;
           this.updateHeader(`${this.config.title}: Now Showing`);
         }
       } else if (payload.type === "recentlyAdded") {
-        console.log("[MMM-Jellyfin] Recently added data received.");
-        // Only reset `currentIndex` when new data arrives
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
-          this.currentIndex = 0; // Reset index only if new data is fetched
-          console.log("[MMM-Jellyfin] Recently added list updated.");
+          this.currentIndex = 0;
         }
         this.nowPlaying = null;
         this.updateHeader(`${this.config.title}: Now Showing`);
       }
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
-      console.log("[MMM-Jellyfin] Jellyfin is offline.");
       this.offline = true;
       this.updateHeader(`${this.config.title}: Jellyfin is offline`);
       this.hide(1000, { lockString: "jellyfin-offline" });
@@ -132,20 +121,27 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
+    container.style.alignItems = "center"; // Vertically center the poster and text
+
+    const posterWrapper = document.createElement("div");
+    posterWrapper.style.display = "flex";
+    posterWrapper.style.alignItems = "center"; // Center poster within its wrapper
+    posterWrapper.style.marginRight = "10px";
 
     const poster = document.createElement("img");
-    poster.src = item.poster || ""; // Ensure poster URL is valid
+    poster.src = item.poster || "";
     poster.style.width = "120px";
     poster.style.height = "200px";
     poster.style.objectFit = "cover";
-    poster.style.marginRight = "10px";
+
+    posterWrapper.appendChild(poster);
 
     const details = document.createElement("div");
     details.style.display = "flex";
     details.style.flexDirection = "column";
 
     const title = document.createElement("h2");
-    title.textContent = item.title || "Untitled"; // Ensure title is valid
+    title.textContent = item.title || "Untitled";
     title.style.fontSize = "0.9em";
     title.style.margin = "0 0 4px 0";
     details.appendChild(title);
@@ -177,7 +173,48 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
-    container.appendChild(poster);
+    // Add progress bar for "Now Playing"
+    if (this.nowPlaying) {
+      const progressContainer = document.createElement("div");
+      progressContainer.style.marginTop = "10px";
+
+      const progressPct =
+        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
+
+      const progressBar = document.createElement("div");
+      progressBar.style.height = "10px";
+      progressBar.style.background = "#444";
+      progressBar.style.width = "100%";
+      progressBar.style.borderRadius = "5px";
+
+      const progressFill = document.createElement("div");
+      progressFill.style.width = `${progressPct}%`;
+      progressFill.style.height = "100%";
+      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
+      progressFill.style.borderRadius = "5px";
+      progressBar.appendChild(progressFill);
+
+      const timeRemaining =
+        Math.max(
+          0,
+          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
+        ) / 10000000; // Convert ticks to seconds
+      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
+        Math.floor(timeRemaining % 60)
+      }s remaining`;
+
+      const timeLabel = document.createElement("div");
+      timeLabel.textContent = timeRemainingText;
+      timeLabel.style.fontSize = "0.75em";
+      timeLabel.style.color = "#ccc";
+      timeLabel.style.marginTop = "5px";
+
+      progressContainer.appendChild(progressBar);
+      progressContainer.appendChild(timeLabel);
+      details.appendChild(progressContainer);
+    }
+
+    container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
 
