@@ -6,22 +6,50 @@ module.exports = NodeHelper.create({
     console.log("[MMM-Jellyfin] Node helper started...");
   },
 
-  async fetchNowPlayingDetails(serverUrl, apiKey, itemId) {
+  async fetchNowPlaying(serverUrl, apiKey, userId) {
     try {
-      const response = await axios.get(`${serverUrl}/Items/${itemId}`, {
+      // Call Jellyfin API for "Now Playing"
+      const response = await axios.get(`${serverUrl}/Sessions`, {
         params: {
           api_key: apiKey,
-          Fields: "Overview,OfficialRating,PremiereDate,MediaSourceCount",
         },
       });
-      return response.data;
+
+      // Filter out sessions with active playback
+      const nowPlayingSession = response.data.find(
+        (session) => session.NowPlayingItem && session.UserId === userId
+      );
+
+      if (!nowPlayingSession || !nowPlayingSession.NowPlayingItem) {
+        return null;
+      }
+
+      const item = nowPlayingSession.NowPlayingItem;
+
+      // Build poster URL
+      const posterUrl =
+        item.ImageTags && item.ImageTags.Primary
+          ? `${serverUrl}/Items/${item.Id}/Images/Primary?api_key=${apiKey}`
+          : null;
+
+      return {
+        id: item.Id,
+        title: item.Name || "Untitled",
+        officialRating: item.OfficialRating || "",
+        premiereDate: item.PremiereDate || "",
+        overview: item.Overview || "",
+        poster: posterUrl,
+        runTimeTicks: item.RunTimeTicks || 0,
+        positionTicks: nowPlayingSession.PlayState.PositionTicks || 0,
+        isPaused: nowPlayingSession.PlayState.IsPaused || false,
+      };
     } catch (error) {
-      console.error("[MMM-Jellyfin] Error fetching now playing details:", error);
+      console.error("[MMM-Jellyfin] Error fetching now playing data:", error);
       return null;
     }
   },
 
-  async fetchJellyfinData(config) {
+  async fetchRecentlyAdded(config) {
     try {
       const response = await axios.get(
         `${config.serverUrl}/Users/${config.userId}/Items/Latest`,
@@ -30,7 +58,7 @@ module.exports = NodeHelper.create({
             IncludeItemTypes: config.contentType,
             Limit: config.maxItems,
             Fields: "Overview,MediaSourceCount",
-            ParentId: config.parentId,
+            ParentId: config.parentId || null, // Optional
             ImageTypeLimit: 1,
             EnableImageTypes: "Primary,Thumb,Banner",
             EnableTotalRecordCount: false,
@@ -41,13 +69,11 @@ module.exports = NodeHelper.create({
         }
       );
 
-      const items = response.data.map((item) => {
-        let posterUrl = null;
-        if (item.ImageTags && item.ImageTags.Primary) {
-          posterUrl = `${config.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${config.apiKey}`;
-        } else if (item.ImageTags && item.ImageTags.Thumb) {
-          posterUrl = `${config.serverUrl}/Items/${item.Id}/Images/Thumb?api_key=${config.apiKey}`;
-        }
+      return response.data.map((item) => {
+        const posterUrl =
+          item.ImageTags && item.ImageTags.Primary
+            ? `${config.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${config.apiKey}`
+            : null;
 
         return {
           id: item.Id,
@@ -58,28 +84,28 @@ module.exports = NodeHelper.create({
           poster: posterUrl,
         };
       });
-
-      return items;
     } catch (error) {
-      console.error("[MMM-Jellyfin] Error fetching Jellyfin data:", error);
+      console.error("[MMM-Jellyfin] Error fetching recently added data:", error);
       return [];
     }
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "FETCH_JELLYFIN_DATA") {
-      this.fetchJellyfinData(payload).then((items) => {
+      console.log("[MMM-Jellyfin] Fetching recently added data...");
+      this.fetchRecentlyAdded(payload).then((items) => {
         this.sendSocketNotification("JELLYFIN_DATA", {
           type: "recentlyAdded",
           data: items,
         });
       });
     } else if (notification === "FETCH_NOW_PLAYING_DETAILS") {
-      const { serverUrl, apiKey, itemId } = payload;
-      this.fetchNowPlayingDetails(serverUrl, apiKey, itemId).then((itemDetails) => {
+      console.log("[MMM-Jellyfin] Fetching now playing data...");
+      const { serverUrl, apiKey, userId } = payload;
+      this.fetchNowPlaying(serverUrl, apiKey, userId).then((nowPlayingItem) => {
         this.sendSocketNotification("JELLYFIN_DATA", {
           type: "nowPlaying",
-          data: itemDetails,
+          data: nowPlayingItem,
         });
       });
     }
