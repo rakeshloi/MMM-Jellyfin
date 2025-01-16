@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 1 * 60 * 1000, // 1 mins
+    updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     nowPlayingCheckInterval: 15 * 1000, // 15 secs for now playing updates
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
@@ -30,6 +30,7 @@ Module.register("MMM-Jellyfin", {
     // Periodically refresh "Recently Added" data
     setInterval(() => {
       if (!this.nowPlaying) {
+        console.log("[MMM-Jellyfin] Fetching recently added...");
         this.getData();
       }
     }, this.config.updateInterval);
@@ -38,6 +39,9 @@ Module.register("MMM-Jellyfin", {
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
+        console.log(
+          `[MMM-Jellyfin] Rotating to recently added index: ${this.currentIndex}`
+        );
         this.updateDom();
       }
     }, this.config.rotateInterval);
@@ -45,6 +49,7 @@ Module.register("MMM-Jellyfin", {
     // Check for "Now Playing" updates
     setInterval(() => {
       if (!this.offline) {
+        console.log("[MMM-Jellyfin] Checking now playing...");
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
@@ -77,22 +82,26 @@ Module.register("MMM-Jellyfin", {
 
       if (payload.type === "nowPlaying") {
         if (payload.data) {
+          console.log("[MMM-Jellyfin] Now playing detected:", payload.data);
           this.nowPlaying = payload.data; // Update with full details
           this.items = []; // Clear "Recently Added" while "Now Playing" is active
           this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
           // If no "Now Playing" data, switch back to "Recently Added"
+          console.log("[MMM-Jellyfin] No now playing data, reverting to recently added.");
           this.nowPlaying = null;
           this.updateHeader(`${this.config.title}: Now Showing`);
         }
       } else if (payload.type === "recentlyAdded") {
+        console.log("[MMM-Jellyfin] Recently added data received:", payload.data);
         this.nowPlaying = null;
         this.items = payload.data || [];
-        this.currentIndex = 0;
+        this.currentIndex = 0; // Reset index when new data arrives
         this.updateHeader(`${this.config.title}: Now Showing`);
       }
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
+      console.log("[MMM-Jellyfin] Jellyfin is offline.");
       this.offline = true;
       this.updateHeader(`${this.config.title}: Jellyfin is offline`);
       this.hide(1000, { lockString: "jellyfin-offline" });
