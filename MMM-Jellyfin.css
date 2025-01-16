@@ -1,16 +1,10 @@
 .jellyfin-wrapper {
-  /* Right-align the entire module */
   display: flex;
-  flex-direction: row; /* Poster on left, text on right */
+  flex-direction: row; /* Poster on the left, text and certs on the right */
   justify-content: flex-end;
   align-items: flex-start;
-
-  /* Let content dictate size, but cap max width if you want */
   width: auto;
   max-width: 450px;
-  height: auto;
-
-  /* Force right edge in the region */
   margin-left: auto;
   margin-right: 0;
   padding: 0;
@@ -38,21 +32,29 @@
   justify-content: flex-start;
   align-items: flex-start;
   width: calc(100% - 140px); /* Allow some width for the poster */
+  position: relative;
 }
 
 .jellyfin-poster {
-  width: 100px; /* Smaller size for posters */
+  width: 100px;
   height: 160px;
   object-fit: cover;
   margin-right: 10px;
 }
 
+.jellyfin-certificate-container {
+  display: flex;
+  justify-content: flex-end; /* Right-align the certs */
+  align-items: center;
+  margin-top: 5px;
+  width: 100%; /* Occupy the full width of the container */
+}
+
 .jellyfin-certificate {
-  /* Style the certificate images */
   display: inline-block;
-  width: 35px; /* Smaller size for certificates */
+  width: 30px;
   height: auto;
-  margin: 5px 0 10px 0;
+  margin-left: 10px; /* Add spacing between certificates */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
@@ -66,9 +68,8 @@
 }
 
 .jellyfin-overview:hover {
-  /* Add scrolling effect for longer text on hover */
   overflow-y: auto;
-  scrollbar-width: thin; /* Adjust scrollbar appearance */
+  scrollbar-width: thin;
 }
 
 .jellyfin-progress-bar-container {
