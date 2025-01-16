@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every 10 minutes
+    updateInterval: 10 * 60 * 1000, // Fetch new data every minute
     rotateInterval: 30 * 1000, // Rotate items every 30 seconds
     nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
     retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
@@ -24,10 +24,9 @@ Module.register("MMM-Jellyfin", {
     this.currentIndex = 0;
     this.offline = false;
 
-    // Fetch "Recently Added" data immediately
-    this.getData();
+    this.getData(); // Fetch "Recently Added" data immediately
 
-    // Periodically refresh "Recently Added" data
+    // Refresh "Recently Added" data periodically
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
@@ -42,14 +41,14 @@ Module.register("MMM-Jellyfin", {
       }
     }, this.config.rotateInterval);
 
-    // Check for "Now Playing" updates
+    // Check "Now Playing" periodically
     setInterval(() => {
       if (!this.offline) {
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
 
-    // Retry fetching data if offline
+    // Retry fetching data when offline
     setInterval(() => {
       if (this.offline) {
         this.getData();
@@ -89,7 +88,7 @@ Module.register("MMM-Jellyfin", {
           this.currentIndex = 0;
         }
         this.nowPlaying = null;
-        this.updateHeader(`${this.config.title}: Now Showing`);
+        this.updateHeader(`${this.config.title}: Recently Added`);
       }
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
@@ -121,11 +120,11 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
-    container.style.alignItems = "center"; // Vertically center the poster and text
+    container.style.alignItems = "center";
 
     const posterWrapper = document.createElement("div");
     posterWrapper.style.display = "flex";
-    posterWrapper.style.alignItems = "center"; // Center poster within its wrapper
+    posterWrapper.style.alignItems = "center";
     posterWrapper.style.marginRight = "10px";
 
     const poster = document.createElement("img");
@@ -173,7 +172,6 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
-    // Add progress bar for "Now Playing"
     if (this.nowPlaying) {
       const progressContainer = document.createElement("div");
       progressContainer.style.marginTop = "10px";
@@ -198,7 +196,7 @@ Module.register("MMM-Jellyfin", {
         Math.max(
           0,
           this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-        ) / 10000000; // Convert ticks to seconds
+        ) / 10000000;
       const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
         Math.floor(timeRemaining % 60)
       }s remaining`;
