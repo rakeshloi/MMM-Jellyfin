@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 10 * 60 * 1000, // 10 mins
+    updateInterval: 1 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
   },
@@ -68,6 +68,7 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       // Jellyfin is offline, hide the module
+      console.log("[MMM-Jellyfin] Jellyfin is offline.");
       this.offline = true;
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
