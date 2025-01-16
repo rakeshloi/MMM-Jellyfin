@@ -18,7 +18,7 @@ logs/
 dist/
 build/
 out/
-
+*.zip
 # OS generated files
 .DS_Store
 .DS_Store?
