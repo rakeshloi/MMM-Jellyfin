@@ -8,8 +8,9 @@ Module.register("MMM-Jellyfin", {
     maxItems: 5,
     updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
+    nowPlayingCheckInterval: 15 * 1000, // 15 secs for now playing updates
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
-    title: "Jellyfin", // Default base title for the module
+    title: "Jellyfin", // Default module title
   },
 
   getStyles() {
@@ -23,21 +24,30 @@ Module.register("MMM-Jellyfin", {
     this.currentIndex = 0;
     this.offline = false;
 
-    // Fetch data immediately
+    // Fetch "Recently Added" data immediately
     this.getData();
 
-    // Periodically refresh data
+    // Periodically refresh "Recently Added" data
     setInterval(() => {
-      this.getData();
+      if (!this.nowPlaying) {
+        this.getData();
+      }
     }, this.config.updateInterval);
 
-    // Rotate through items if not offline and there are multiple items
+    // Rotate through "Recently Added" items
     setInterval(() => {
-      if (!this.offline && this.items.length > 1) {
+      if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
         this.updateDom();
       }
     }, this.config.rotateInterval);
+
+    // Check for "Now Playing" updates
+    setInterval(() => {
+      if (!this.offline) {
+        this.checkNowPlaying();
+      }
+    }, this.config.nowPlayingCheckInterval);
 
     // Retry fetching data if offline
     setInterval(() => {
@@ -49,15 +59,15 @@ Module.register("MMM-Jellyfin", {
   },
 
   getData() {
-    if (this.nowPlaying) {
-      this.sendSocketNotification("FETCH_NOW_PLAYING_DETAILS", {
-        serverUrl: this.config.serverUrl,
-        apiKey: this.config.apiKey,
-        itemId: this.nowPlaying.id,
-      });
-    } else {
-      this.sendSocketNotification("FETCH_JELLYFIN_DATA", this.config);
-    }
+    this.sendSocketNotification("FETCH_JELLYFIN_DATA", this.config);
+  },
+
+  checkNowPlaying() {
+    this.sendSocketNotification("FETCH_NOW_PLAYING_DETAILS", {
+      serverUrl: this.config.serverUrl,
+      apiKey: this.config.apiKey,
+      userId: this.config.userId,
+    });
   },
 
   socketNotificationReceived(notification, payload) {
@@ -66,9 +76,15 @@ Module.register("MMM-Jellyfin", {
       this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
-        this.nowPlaying = payload.data; // Full details fetched here
-        this.items = [];
-        this.updateHeader(`${this.config.title}: Now Playing`);
+        if (payload.data) {
+          this.nowPlaying = payload.data; // Update with full details
+          this.items = []; // Clear "Recently Added" while "Now Playing" is active
+          this.updateHeader(`${this.config.title}: Now Playing`);
+        } else {
+          // If no "Now Playing" data, switch back to "Recently Added"
+          this.nowPlaying = null;
+          this.updateHeader(`${this.config.title}: Now Showing`);
+        }
       } else if (payload.type === "recentlyAdded") {
         this.nowPlaying = null;
         this.items = payload.data || [];
