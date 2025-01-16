@@ -49,7 +49,15 @@ Module.register("MMM-Jellyfin", {
   },
 
   getData() {
-    this.sendSocketNotification("FETCH_JELLYFIN_DATA", this.config);
+    if (this.nowPlaying) {
+      this.sendSocketNotification("FETCH_NOW_PLAYING_DETAILS", {
+        serverUrl: this.config.serverUrl,
+        apiKey: this.config.apiKey,
+        itemId: this.nowPlaying.id,
+      });
+    } else {
+      this.sendSocketNotification("FETCH_JELLYFIN_DATA", this.config);
+    }
   },
 
   socketNotificationReceived(notification, payload) {
@@ -58,7 +66,7 @@ Module.register("MMM-Jellyfin", {
       this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
-        this.nowPlaying = payload.data;
+        this.nowPlaying = payload.data; // Full details fetched here
         this.items = [];
         this.updateHeader(`${this.config.title}: Now Playing`);
       } else if (payload.type === "recentlyAdded") {
@@ -97,7 +105,6 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
-    container.style.flexDirection = "row"; // Ensure poster and details are side by side
 
     const poster = document.createElement("img");
     poster.src = item.poster || ""; // Ensure poster URL is valid
@@ -109,7 +116,6 @@ Module.register("MMM-Jellyfin", {
     const details = document.createElement("div");
     details.style.display = "flex";
     details.style.flexDirection = "column";
-    details.style.justifyContent = "space-between"; // Space out elements vertically
 
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled"; // Ensure title is valid
@@ -142,48 +148,6 @@ Module.register("MMM-Jellyfin", {
       overview.style.fontSize = "0.75em";
       overview.style.lineHeight = "1.2em";
       details.appendChild(overview);
-    }
-
-    // Add progress bar for "Now Playing"
-    if (this.nowPlaying) {
-      const progressContainer = document.createElement("div");
-      progressContainer.style.marginTop = "10px";
-
-      const progressPct =
-        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
-
-      const progressBar = document.createElement("div");
-      progressBar.style.height = "10px";
-      progressBar.style.background = "#444";
-      progressBar.style.width = "100%";
-      progressBar.style.borderRadius = "5px";
-      progressBar.style.position = "relative";
-
-      const progressFill = document.createElement("div");
-      progressFill.style.width = `${progressPct}%`;
-      progressFill.style.height = "100%";
-      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
-      progressFill.style.borderRadius = "5px";
-      progressBar.appendChild(progressFill);
-
-      const timeRemaining =
-        Math.max(
-          0,
-          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-        ) / 10000000; // Convert ticks to seconds
-      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
-        Math.floor(timeRemaining % 60)
-      }s remaining`;
-
-      const timeLabel = document.createElement("div");
-      timeLabel.textContent = timeRemainingText;
-      timeLabel.style.fontSize = "0.75em";
-      timeLabel.style.color = "#ccc";
-      timeLabel.style.marginTop = "5px";
-
-      progressContainer.appendChild(progressBar);
-      progressContainer.appendChild(timeLabel);
-      details.appendChild(progressContainer);
     }
 
     container.appendChild(poster);
