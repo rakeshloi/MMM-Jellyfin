@@ -9,7 +9,7 @@ Module.register("MMM-Jellyfin", {
     updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    title: "Jellyfin", // Default base title for the module
   },
 
   getStyles() {
@@ -60,46 +60,38 @@ Module.register("MMM-Jellyfin", {
       if (payload.type === "nowPlaying") {
         this.nowPlaying = payload.data;
         this.items = [];
+        this.updateHeader(`${this.config.title}: Now Playing`);
       } else if (payload.type === "recentlyAdded") {
         this.nowPlaying = null;
         this.items = payload.data || [];
         this.currentIndex = 0;
+        this.updateHeader(`${this.config.title}: Now Showing`);
       }
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
+      this.updateHeader(`${this.config.title}: Jellyfin is offline`);
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
+  },
+
+  updateHeader(text) {
+    this.data.header = text;
+    this.updateDom();
   },
 
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Add the heading container
-    const headingContainer = document.createElement("div");
-    headingContainer.style.width = "100%"; // Ensure heading spans full width
-    headingContainer.style.textAlign = "right"; // Right-align the heading
-    headingContainer.style.marginBottom = "10px"; // Add space below heading
-
-    const heading = document.createElement("header");
-    heading.className = "module-header"; // Use MagicMirror's default class
-    heading.textContent = this.offline
-      ? `${this.config.title}: Jellyfin is offline`
-      : this.nowPlaying
-      ? `${this.config.title}: Now Playing`
-      : `${this.config.title}: Now Showing`;
-
-    headingContainer.appendChild(heading);
-    wrapper.appendChild(headingContainer); // Add heading container to the wrapper
-
     if (this.offline) {
-      return wrapper; // Stop rendering if Jellyfin is offline
+      wrapper.innerHTML = "Jellyfin is offline...";
+      return wrapper;
     }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML += "Loading Jellyfin data...";
+      wrapper.innerHTML = "Loading Jellyfin data...";
       return wrapper;
     }
 
