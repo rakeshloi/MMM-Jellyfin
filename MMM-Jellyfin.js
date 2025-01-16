@@ -9,7 +9,7 @@ Module.register("MMM-Jellyfin", {
     updateInterval: 10 * 60 * 1000, // 10 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
-    title: "Jellyfin", // Default title for the module
+    title: "Jellyfin", // Default module title
   },
 
   getStyles() {
@@ -76,12 +76,13 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Module heading: Configurable and dynamic
+    // Add the dynamic heading
     const heading = document.createElement("div");
     heading.className = "module-heading";
     heading.style.fontSize = "1.2em";
     heading.style.marginBottom = "10px";
     heading.style.textAlign = "center";
+    heading.style.width = "100%";
 
     if (this.offline) {
       heading.textContent = `${this.config.title}: Jellyfin is offline`;
@@ -93,7 +94,7 @@ Module.register("MMM-Jellyfin", {
     heading.textContent = this.nowPlaying
       ? `${this.config.title}: Now Playing`
       : `${this.config.title}: Now Showing`;
-    wrapper.appendChild(heading);
+    wrapper.appendChild(heading); // Add heading to the top of the module
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
@@ -103,6 +104,7 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
+    container.style.marginTop = "10px"; // Add space between heading and content
 
     const poster = document.createElement("img");
     poster.src = item.poster || ""; // Ensure poster URL is valid
