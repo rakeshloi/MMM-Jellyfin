@@ -37,21 +37,55 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+  width: calc(100% - 140px); /* Allow some width for the poster */
+}
+
+.jellyfin-poster {
+  width: 100px; /* Smaller size for posters */
+  height: 160px;
+  object-fit: cover;
+  margin-right: 10px;
 }
 
 .jellyfin-certificate {
   /* Style the certificate images */
   display: inline-block;
-  width: 50px;
+  width: 35px; /* Smaller size for certificates */
   height: auto;
   margin: 5px 0 10px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
 
-.jellyfin-poster {
-  width: 120px;
-  height: 200px;
-  object-fit: cover;
-  margin-right: 10px;
+.jellyfin-overview {
+  max-height: 3.6em; /* Restrict to 3 lines */
+  line-height: 1.2em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  position: relative;
+}
+
+.jellyfin-overview:hover {
+  /* Add scrolling effect for longer text on hover */
+  overflow-y: auto;
+  scrollbar-width: thin; /* Adjust scrollbar appearance */
+}
+
+.jellyfin-progress-bar-container {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.jellyfin-progress-bar {
+  height: 8px;
+  background: #444;
+  width: 100%;
+  border-radius: 4px;
+  position: relative;
+}
+
+.jellyfin-progress-bar-fill {
+  height: 100%;
+  background: #0f0;
+  border-radius: 4px;
 }
