@@ -6,7 +6,7 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 5,
-    updateInterval: 10 * 60 * 1000, // 10 mins
+    updateInterval: 1 * 60 * 1000, // 1 mins
     rotateInterval: 30 * 1000, // 30 secs
     retryInterval: 5 * 60 * 1000, // Retry every 5 mins if Jellyfin is offline
   },
@@ -53,7 +53,6 @@ Module.register("MMM-Jellyfin", {
 
   socketNotificationReceived(notification, payload) {
     if (notification === "JELLYFIN_DATA") {
-      // Jellyfin is online, reset state
       this.offline = false;
       this.show(1000, { lockString: "jellyfin-offline" });
 
@@ -67,8 +66,6 @@ Module.register("MMM-Jellyfin", {
       }
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
-      // Jellyfin is offline, hide the module
-      console.log("[MMM-Jellyfin] Jellyfin is offline.");
       this.offline = true;
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
@@ -78,65 +75,38 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
+    // Add the dynamic heading
+    const heading = document.createElement("h1");
+    heading.style.fontSize = "1.2em";
+    heading.style.margin = "0 0 10px 0";
+    heading.style.textAlign = "center";
+
     if (this.offline) {
       wrapper.innerHTML = "Jellyfin is offline...";
       return wrapper;
     }
 
+    // Dynamic heading based on current state
     if (this.nowPlaying) {
-      const container = document.createElement("div");
-      container.style.display = "flex";
+      heading.textContent = "Now Playing on Jellyfin";
+    } else {
+      heading.textContent = "Now Showing on Jellyfin";
+    }
+    wrapper.appendChild(heading);
 
-      const poster = document.createElement("img");
-      poster.src = this.nowPlaying.poster;
-      poster.style.width = "150px";
-      poster.style.height = "auto";
-      poster.style.objectFit = "cover";
-      poster.style.marginRight = "10px";
-
-      const details = document.createElement("div");
-      details.style.display = "flex";
-      details.style.flexDirection = "column";
-
-      const title = document.createElement("h2");
-      title.textContent = this.nowPlaying.title;
-      details.appendChild(title);
-
-      const progressPct =
-        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
-
-      const progressBar = document.createElement("div");
-      progressBar.style.height = "10px";
-      progressBar.style.background = "#444";
-      progressBar.style.width = "200px";
-
-      const progressFill = document.createElement("div");
-      progressFill.style.width = `${progressPct}%`;
-      progressFill.style.height = "10px";
-      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
-      progressBar.appendChild(progressFill);
-
-      details.appendChild(progressBar);
-      container.appendChild(poster);
-      container.appendChild(details);
-      wrapper.appendChild(container);
-
+    const item = this.nowPlaying || this.items[this.currentIndex];
+    if (!item) {
+      wrapper.innerHTML += "Loading Jellyfin data...";
       return wrapper;
     }
 
-    if (!this.items.length) {
-      wrapper.innerHTML = "Loading Jellyfin data...";
-      return wrapper;
-    }
-
-    const item = this.items[this.currentIndex];
     const container = document.createElement("div");
     container.style.display = "flex";
 
     const poster = document.createElement("img");
     poster.src = item.poster;
-    poster.style.width = "150px";
-    poster.style.height = "auto";
+    poster.style.width = "120px";
+    poster.style.height = "200px";
     poster.style.objectFit = "cover";
     poster.style.marginRight = "10px";
 
@@ -146,24 +116,75 @@ Module.register("MMM-Jellyfin", {
 
     const title = document.createElement("h2");
     title.textContent = item.title;
+    title.style.fontSize = "0.9em";
+    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
     if (item.officialRating) {
       const rating = document.createElement("div");
       rating.textContent = `Rating: ${item.officialRating}`;
+      rating.style.fontSize = "0.8em";
+      rating.style.color = "#ccc";
+      rating.style.marginBottom = "4px";
       details.appendChild(rating);
     }
 
     if (item.premiereDate) {
       const date = document.createElement("div");
       date.textContent = `Premiere: ${new Date(item.premiereDate).toLocaleDateString()}`;
+      date.style.fontSize = "0.8em";
+      date.style.color = "#ccc";
+      date.style.marginBottom = "4px";
       details.appendChild(date);
     }
 
     if (item.overview) {
       const overview = document.createElement("p");
       overview.textContent = item.overview;
+      overview.style.fontSize = "0.75em";
+      overview.style.lineHeight = "1.2em";
       details.appendChild(overview);
+    }
+
+    // Add progress bar for "Now Playing"
+    if (this.nowPlaying) {
+      const progressPct =
+        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
+
+      const timeRemaining =
+        Math.max(
+          0,
+          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
+        ) / 10000000; // Convert ticks to seconds
+
+      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
+        Math.floor(timeRemaining % 60)
+      }s remaining`;
+
+      const progressContainer = document.createElement("div");
+      progressContainer.style.marginTop = "10px";
+
+      const progressBar = document.createElement("div");
+      progressBar.style.height = "10px";
+      progressBar.style.background = "#444";
+      progressBar.style.width = "200px";
+      progressBar.style.position = "relative";
+
+      const progressFill = document.createElement("div");
+      progressFill.style.width = `${progressPct}%`;
+      progressFill.style.height = "10px";
+      progressFill.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
+      progressBar.appendChild(progressFill);
+
+      const timeRemainingLabel = document.createElement("div");
+      timeRemainingLabel.textContent = timeRemainingText;
+      timeRemainingLabel.style.fontSize = "0.75em";
+      timeRemainingLabel.style.color = "#ccc";
+      timeRemainingLabel.style.marginTop = "5px";
+
+      progressContainer.appendChild(progressBar);
+      progressContainer.appendChild(timeRemainingLabel);
+      details.appendChild(progressContainer);
     }
 
     container.appendChild(poster);
