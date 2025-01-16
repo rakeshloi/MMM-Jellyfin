@@ -76,21 +76,26 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Add the standard MagicMirror module heading
+    // Add the heading container
+    const headingContainer = document.createElement("div");
+    headingContainer.style.width = "100%"; // Ensure heading spans full width
+    headingContainer.style.textAlign = "right"; // Right-align the heading
+    headingContainer.style.marginBottom = "10px"; // Add space below heading
+
     const heading = document.createElement("header");
-    heading.className = "module-header"; // Use MagicMirror's default class for headers
-
-    if (this.offline) {
-      heading.textContent = `${this.config.title}: Jellyfin is offline`;
-      wrapper.appendChild(heading);
-      return wrapper;
-    }
-
-    // Dynamic title based on content
-    heading.textContent = this.nowPlaying
+    heading.className = "module-header"; // Use MagicMirror's default class
+    heading.textContent = this.offline
+      ? `${this.config.title}: Jellyfin is offline`
+      : this.nowPlaying
       ? `${this.config.title}: Now Playing`
       : `${this.config.title}: Now Showing`;
-    wrapper.appendChild(heading); // Add heading to the top of the module
+
+    headingContainer.appendChild(heading);
+    wrapper.appendChild(headingContainer); // Add heading container to the wrapper
+
+    if (this.offline) {
+      return wrapper; // Stop rendering if Jellyfin is offline
+    }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
@@ -100,7 +105,6 @@ Module.register("MMM-Jellyfin", {
 
     const container = document.createElement("div");
     container.style.display = "flex";
-    container.style.marginTop = "10px"; // Add space between heading and content
 
     const poster = document.createElement("img");
     poster.src = item.poster || ""; // Ensure poster URL is valid
