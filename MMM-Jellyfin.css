@@ -1,54 +1,30 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: column; /* Stack everything */
-  align-items: center; /* Center-align the module content */
-  max-width: 400px; /* Limit width of the module */
-  margin: 0 auto; /* Center horizontally */
+  flex-direction: column;
+  align-items: center;
+  max-width: 400px;
+  margin: 0 auto;
   padding: 0;
-  overflow: hidden;
-}
-
-.jellyfin-container {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  width: 100%; /* Ensure it fits within the wrapper */
-}
-
-.jellyfin-poster-wrapper {
-  margin-right: 10px;
-}
-
-.jellyfin-poster {
-  width: 120px;
-  height: 200px;
-  object-fit: cover;
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
-  flex: 1; /* Take the remaining space */
 }
 
-.jellyfin-overview {
+.jellyfin-details h2 {
+  font-size: 1em;
+  margin: 0;
+}
+
+.jellyfin-details p {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 3.6em; /* Limit to 3 lines */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
+  margin: 5px 0;
 }
 
-.jellyfin-certificate-container {
-  display: flex;
-  justify-content: flex-end; /* Align certificate image to the right */
-  align-items: center;
+.jellyfin-details img {
   margin-top: 5px;
-}
-
-.jellyfin-certificate {
-  width: 30px;
-  height: auto;
+  display: block;
+  margin-left: auto; /* Align image to the right */
 }

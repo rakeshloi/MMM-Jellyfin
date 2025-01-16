@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
-    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
-    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
-    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    updateInterval: 1 * 60 * 1000,
+    rotateInterval: 30 * 1000,
+    nowPlayingCheckInterval: 15 * 1000,
+    retryInterval: 5 * 60 * 1000,
+    title: "Jellyfin",
   },
 
   getStyles() {
@@ -26,7 +26,6 @@ Module.register("MMM-Jellyfin", {
 
     this.getData();
 
-    // Periodic updates
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
@@ -115,40 +114,43 @@ Module.register("MMM-Jellyfin", {
     }
 
     const container = document.createElement("div");
-    container.className = "jellyfin-container";
+    container.style.display = "flex";
+    container.style.alignItems = "center";
 
     const posterWrapper = document.createElement("div");
-    posterWrapper.className = "jellyfin-poster-wrapper";
+    posterWrapper.style.marginRight = "10px";
 
     const poster = document.createElement("img");
-    poster.className = "jellyfin-poster";
     poster.src = item.poster || "";
+    poster.style.width = "120px";
+    poster.style.height = "200px";
+    poster.style.objectFit = "cover";
 
     posterWrapper.appendChild(poster);
 
     const details = document.createElement("div");
-    details.className = "jellyfin-details";
+    details.style.display = "flex";
+    details.style.flexDirection = "column";
 
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
     details.appendChild(title);
 
     if (item.officialRatingImage) {
-      const certificateContainer = document.createElement("div");
-      certificateContainer.className = "jellyfin-certificate-container";
-
-      const certificateImage = document.createElement("img");
-      certificateImage.className = "jellyfin-certificate";
-      certificateImage.src = item.officialRatingImage;
-
-      certificateContainer.appendChild(certificateImage);
-      details.appendChild(certificateContainer);
+      const ratingImage = document.createElement("img");
+      ratingImage.src = item.officialRatingImage;
+      ratingImage.style.width = "30px";
+      ratingImage.style.height = "auto";
+      ratingImage.style.marginTop = "5px";
+      details.appendChild(ratingImage);
     }
 
     if (item.overview) {
       const overview = document.createElement("p");
-      overview.className = "jellyfin-overview";
       overview.textContent = item.overview;
+      overview.style.fontSize = "0.75em";
+      overview.style.lineHeight = "1.2em";
+      overview.style.margin = "5px 0";
       details.appendChild(overview);
     }
 
