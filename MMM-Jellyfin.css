@@ -1,13 +1,12 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+  flex-direction: column;
   align-items: flex-start;
-  width: auto;
-  max-width: 450px;
+  width: 100%;
+  max-width: 450px; /* Restrict module width */
   padding: 10px;
   box-sizing: border-box;
-  overflow: hidden;
+  background: none;
 }
 
 .jellyfin-container {
@@ -16,55 +15,63 @@
   align-items: flex-start;
   justify-content: space-between;
   width: 100%;
+  margin-bottom: 10px;
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-end;
-  text-align: right;
-  width: calc(100% - 140px);
+  align-items: flex-start;
+  text-align: left;
+  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
 }
 
 .jellyfin-title {
-  font-size: 1.2em;
-  margin-bottom: 5px;
+  font-size: 1em;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #fff;
+}
+
+.jellyfin-cert-runtime {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  margin: 5px 0;
+}
+
+.jellyfin-certificate {
+  width: 25px; /* Adjusted size for a smaller certificate */
+  height: auto;
+}
+
+.jellyfin-runtime {
+  font-size: 0.8em;
+  color: #ccc;
 }
 
 .jellyfin-premiere-date {
   font-size: 0.8em;
   color: #ccc;
-  margin-bottom: 5px;
+  margin-bottom: 4px;
 }
 
-.jellyfin-certificate {
-  width: 25px;
-  height: auto;
-  margin-bottom: 5px;
+.jellyfin-overview {
+  font-size: 0.75em;
+  line-height: 1.2em;
+  max-height: calc(1.2em * 5); /* Limit to 5 lines */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 5; /* Limit to 5 lines */
+  -webkit-box-orient: vertical;
 }
 
 .jellyfin-poster {
   width: 120px;
   height: 200px;
-  object-fit: cover;
+  object-fit: cover; /* Maintain aspect ratio */
   margin-left: 10px;
-}
-
-.scrollable-overview {
-  font-size: 0.75em;
-  line-height: 1.2em;
-  max-height: 6em; /* 5 lines max */
-  overflow: hidden;
-  position: relative;
-}
-
-.scrollable-overview p {
-  display: inline-block;
-  animation: scroll-overview 25s linear forwards;
-}
-
-@keyframes scroll-overview {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-100%); }
 }
