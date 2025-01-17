@@ -132,25 +132,21 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(certificateImg);
     }
 
+    if (item.runTimeTicks) {
+      const runtime = document.createElement("div");
+      runtime.className = "jellyfin-runtime";
+      const runtimeMinutes = Math.floor(item.runTimeTicks / 600000000); // Convert ticks to minutes
+      runtime.textContent = `${runtimeMinutes} min`;
+      details.appendChild(runtime);
+    }
+
     if (item.overview) {
       const overview = document.createElement("div");
-      overview.className = "scrollable-overview";
-
+      overview.className = "jellyfin-overview";
       const overviewText = document.createElement("p");
       overviewText.textContent = item.overview || "No description available.";
       overview.appendChild(overviewText);
       details.appendChild(overview);
-
-      const lineHeight = 1.2; // em
-      const maxLines = 5;
-      const maxHeight = `${lineHeight * maxLines}em`;
-
-      overview.style.maxHeight = maxHeight;
-      overview.style.overflow = "hidden";
-
-      overviewText.style.animation = overviewText.scrollHeight > parseFloat(maxHeight)
-        ? `scroll-overview 25s linear forwards`
-        : "none";
     }
 
     const poster = document.createElement("img");

@@ -61,7 +61,6 @@
 .jellyfin-overview {
   display: -webkit-box;
   -webkit-line-clamp: 5; /* Limit to 5 lines */
-  line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
