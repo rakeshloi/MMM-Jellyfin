@@ -96,26 +96,26 @@ Module.register("MMM-Jellyfin", {
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
-
+  
     if (this.offline) return wrapper;
-
+  
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
       wrapper.innerHTML = "";
       return wrapper;
     }
-
+  
     const container = document.createElement("div");
     container.className = "jellyfin-container";
-
+  
     const details = document.createElement("div");
     details.className = "jellyfin-details";
-
+  
     const title = document.createElement("div");
     title.className = "jellyfin-title";
     title.textContent = item.title || "Untitled";
     details.appendChild(title);
-
+  
     if (item.premiereDate) {
       const date = document.createElement("div");
       date.className = "jellyfin-premiere-date";
@@ -123,7 +123,7 @@ Module.register("MMM-Jellyfin", {
       date.textContent = `Premiere: ${formattedDate}`;
       details.appendChild(date);
     }
-
+  
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.className = "jellyfin-certificate";
@@ -131,7 +131,7 @@ Module.register("MMM-Jellyfin", {
       certificateImg.alt = item.officialRating;
       details.appendChild(certificateImg);
     }
-
+  
     if (item.runTimeTicks) {
       const runtime = document.createElement("div");
       runtime.className = "jellyfin-runtime";
@@ -139,7 +139,7 @@ Module.register("MMM-Jellyfin", {
       runtime.textContent = `${runtimeMinutes} min`;
       details.appendChild(runtime);
     }
-
+  
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "jellyfin-overview";
@@ -148,14 +148,36 @@ Module.register("MMM-Jellyfin", {
       overview.appendChild(overviewText);
       details.appendChild(overview);
     }
-
+  
+    // Progress Bar
+    if (item.positionTicks !== undefined && item.runTimeTicks !== undefined) {
+      const progressBarContainer = document.createElement("div");
+      progressBarContainer.className = "jellyfin-progress-bar-container";
+  
+      const progressBar = document.createElement("div");
+      progressBar.className = "jellyfin-progress-bar";
+      const progressPercentage = (item.positionTicks / item.runTimeTicks) * 100;
+      progressBar.style.width = `${progressPercentage}%`;
+  
+      progressBarContainer.appendChild(progressBar);
+      details.appendChild(progressBarContainer);
+  
+      // Remaining Time
+      const remainingTime = document.createElement("div");
+      remainingTime.className = "jellyfin-remaining-time";
+      const remainingTicks = item.runTimeTicks - item.positionTicks;
+      const remainingMinutes = Math.floor(remainingTicks / 600000000); // Convert ticks to minutes
+      remainingTime.textContent = `Remaining: ${remainingMinutes} min`;
+      details.appendChild(remainingTime);
+    }
+  
     const poster = document.createElement("img");
     poster.className = "jellyfin-poster";
     poster.src = item.poster || "";
     container.appendChild(details);
     container.appendChild(poster);
-
+  
     wrapper.appendChild(container);
     return wrapper;
-  },
+  },  
 });
