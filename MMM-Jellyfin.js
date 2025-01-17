@@ -99,82 +99,122 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  getDom: function() {
+  getDom: function () {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
   
     if (this.offline) {
-      return wrapper; // If offline, return the empty wrapper.
+      return wrapper; // Return an empty wrapper when offline.
     }
   
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML = ""; // Return empty if no item is available.
+      wrapper.innerHTML = ""; // If no data, display nothing.
       return wrapper;
     }
   
     const container = document.createElement("div");
     container.className = "jellyfin-container";
   
+    // Poster
     const poster = document.createElement("img");
     poster.className = "jellyfin-poster";
-    poster.src = item.poster || ""; // Poster URL or empty string.
+    poster.src = item.poster || ""; // Add poster image or fallback to empty.
     container.appendChild(poster);
   
     const details = document.createElement("div");
     details.className = "jellyfin-details";
   
+    // Title
     const title = document.createElement("div");
     title.className = "jellyfin-title";
-    title.textContent = item.title || "Untitled"; // Display movie title or "Untitled".
+    title.textContent = item.title || "Untitled";
     details.appendChild(title);
   
+    // Premiere Date
     if (item.premiereDate) {
       const date = document.createElement("div");
       date.className = "jellyfin-premiere-date";
       const formattedDate = new Date(item.premiereDate).toLocaleDateString();
-      date.textContent = `Premiere: ${formattedDate}`; // Display formatted premiere date.
+      date.textContent = `Premiere: ${formattedDate}`;
       details.appendChild(date);
     }
   
+    // Certificate
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.className = "jellyfin-certificate";
       certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
-      certificateImg.alt = item.officialRating; // Display certificate image.
+      certificateImg.alt = item.officialRating;
       details.appendChild(certificateImg);
     }
   
+    // Overview
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "scrollable-overview";
   
       const overviewText = document.createElement("p");
-      overviewText.textContent = item.overview || "No description available."; // Overview text.
+      overviewText.textContent = item.overview || "No description available.";
       overview.appendChild(overviewText);
       details.appendChild(overview);
   
-      // Temporarily append container to measure overview height.
-      container.appendChild(details);
+      // Temporarily append to measure height
+      wrapper.appendChild(container);
       document.body.appendChild(wrapper);
   
-      // Measure line height and maximum allowed height.
+      // Calculate line height and maximum allowed height
       const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
-      const maxAllowedHeight = lineHeight * 4; // Maximum height for 4 lines.
+      const maxAllowedHeight = lineHeight * 4;
   
-      // Determine if scrolling is needed.
+      // Check if scrolling is needed
       if (overviewText.scrollHeight > maxAllowedHeight) {
-        overviewText.classList.add("scrollable-content"); // Add scrolling animation.
+        overview.classList.add("scrollable-content"); // Add animation class
       } else {
-        overviewText.classList.remove("scrollable-content"); // Remove animation if unnecessary.
+        overview.classList.remove("scrollable-content"); // No scrolling
       }
   
-      // Remove temporary DOM addition after measurement.
+      // Remove temporary DOM addition after measurement
       document.body.removeChild(wrapper);
+    }
+  
+    // Now Playing - Progress Bar
+    if (this.nowPlaying) {
+      const progressContainer = document.createElement("div");
+      progressContainer.className = "progress-container";
+  
+      // Progress bar percentage
+      const progressPct =
+        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
+  
+      const progressBar = document.createElement("div");
+      progressBar.className = "progress-bar";
+      const progressFill = document.createElement("div");
+      progressFill.className = "progress-fill";
+      progressFill.style.width = `${progressPct}%`;
+      progressBar.appendChild(progressFill);
+  
+      const timeRemaining =
+        Math.max(
+          0,
+          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
+        ) / 10000000; // Convert ticks to seconds
+      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
+        Math.floor(timeRemaining % 60)
+      }s remaining`;
+  
+      const timeLabel = document.createElement("div");
+      timeLabel.className = "time-remaining";
+      timeLabel.textContent = timeRemainingText;
+  
+      progressContainer.appendChild(progressBar);
+      progressContainer.appendChild(timeLabel);
+      details.appendChild(progressContainer);
     }
   
     container.appendChild(details);
     wrapper.appendChild(container);
-    return wrapper; // Return the complete DOM structure.
+  
+    return wrapper;
   },  
 });
