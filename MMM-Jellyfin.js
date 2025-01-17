@@ -181,5 +181,5 @@ Module.register("MMM-Jellyfin", {
   
     wrapper.appendChild(container);
     return wrapper;
-  }  
+  }   
 });
