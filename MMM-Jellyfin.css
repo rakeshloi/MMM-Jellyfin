@@ -1,6 +1,6 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Make sure text is on the left and poster is on the right */
+  flex-direction: row; /* Poster on the right, details on the left */
   justify-content: flex-start;
   align-items: flex-start;
   width: auto;
@@ -53,25 +53,26 @@
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 4.8em;
+  max-height: 6em; /* Limit to 5 lines (5 * 1.2em) */
   overflow: hidden;
   position: relative;
+  display: block;
 }
 
 .scrollable-overview p {
   display: inline-block;
   white-space: normal;
-  max-height: 4.8em;
+  max-height: 6em;
   line-height: 1.2em;
   overflow: hidden;
+}
+
+.scrollable-content {
   animation: scroll-overview 25s linear forwards;
 }
 
 @keyframes scroll-overview {
   0% {
-    transform: translateY(0);
-  }
-  10% {
     transform: translateY(0);
   }
   90% {

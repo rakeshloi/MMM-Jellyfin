@@ -144,6 +144,7 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(certificateImg);
     }
   
+    // Overview with scrolling functionality
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "scrollable-overview";
@@ -159,9 +160,9 @@ Module.register("MMM-Jellyfin", {
   
       // Calculate line height and maximum allowed height
       const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
-      const maxAllowedHeight = lineHeight * 4;
+      const maxAllowedHeight = lineHeight * 5; // 5 lines
   
-      // Check if the content exceeds 4 lines
+      // Check if the content exceeds 5 lines
       if (overviewText.scrollHeight > maxAllowedHeight) {
         overviewText.classList.add("scrollable-content");
       } else {
