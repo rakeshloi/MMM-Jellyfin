@@ -59,13 +59,13 @@
 }
 
 .jellyfin-overview {
-  font-size: 0.5em; /* Match font size to premiere date */
-  line-height: 1.0em; /* Match line height to premiere date */
-  max-height: calc(1.0em * 4); /* Limit to 5 lines */
+  font-size: 0.6em !important; /* Smaller font size with higher specificity */
+  line-height: 1.0em; /* Adjust line height */
+  max-height: calc(1.0em * 5); /* Limit to 5 lines */
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Limit to 5 lines */
+  -webkit-line-clamp: 5; /* Limit to 5 lines */
   -webkit-box-orient: vertical;
   white-space: normal; /* Ensure text wraps */
 }
