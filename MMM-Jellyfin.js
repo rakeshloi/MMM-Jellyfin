@@ -23,11 +23,10 @@ Module.register("MMM-Jellyfin", {
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
-    this.previousNowPlaying = null; // Track previous Now Playing state
 
-    this.getData();
+    this.getData(); // Fetch "Recently Added" data immediately
 
-    // Periodically refresh "Recently Added" data
+    // Refresh "Recently Added" data periodically
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
@@ -42,14 +41,14 @@ Module.register("MMM-Jellyfin", {
       }
     }, this.config.rotateInterval);
 
-    // Check for "Now Playing" updates
+    // Check "Now Playing" periodically
     setInterval(() => {
       if (!this.offline) {
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
 
-    // Retry fetching data if offline
+    // Retry fetching data when offline
     setInterval(() => {
       if (this.offline) {
         this.getData();
@@ -75,11 +74,11 @@ Module.register("MMM-Jellyfin", {
       this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
-        if (payload.data && JSON.stringify(this.nowPlaying) !== JSON.stringify(payload.data)) {
+        if (payload.data) {
           this.nowPlaying = payload.data;
           this.items = []; // Clear "Recently Added" while "Now Playing" is active
           this.updateHeader(`${this.config.title}: Now Playing`);
-        } else if (!payload.data && this.nowPlaying) {
+        } else {
           this.nowPlaying = null;
           this.updateHeader(`${this.config.title}: Now Showing`);
         }
@@ -100,7 +99,85 @@ Module.register("MMM-Jellyfin", {
   },
 
   updateHeader(text) {
-    this.data.header = text; // Dynamically update the header text
+    this.data.header = text;
     this.updateDom();
+  },
+
+  getDom() {
+    const wrapper = document.createElement("div");
+    wrapper.className = "jellyfin-wrapper";
+
+    if (this.offline) {
+      wrapper.innerHTML = "Jellyfin is offline...";
+      return wrapper;
+    }
+
+    const item = this.nowPlaying || this.items[this.currentIndex];
+    if (!item) {
+      wrapper.innerHTML = "Loading Jellyfin data...";
+      return wrapper;
+    }
+
+    const container = document.createElement("div");
+    container.className = "jellyfin-container";
+
+    // Poster section
+    const posterWrapper = document.createElement("div");
+    posterWrapper.style.display = "flex";
+    posterWrapper.style.alignItems = "center";
+    posterWrapper.style.marginRight = "10px";
+
+    const poster = document.createElement("img");
+    poster.className = "jellyfin-poster";
+    poster.src = item.poster || "";
+    posterWrapper.appendChild(poster);
+
+    // Details section (title, premiere date, certificate, overview)
+    const details = document.createElement("div");
+    details.className = "jellyfin-details";
+
+    // Movie title
+    const title = document.createElement("div");
+    title.className = "jellyfin-title";
+    title.textContent = item.title || "Untitled";
+    details.appendChild(title);
+
+    // Premiere date
+    if (item.premiereDate) {
+      const date = document.createElement("div");
+      date.className = "jellyfin-premiere-date";
+      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
+      date.textContent = `Premiere: ${formattedDate}`;
+      details.appendChild(date);
+    }
+
+    // Certificate image (if available)
+    if (item.officialRating) {
+      const certificateImg = document.createElement("img");
+      certificateImg.className = "jellyfin-certificate";
+      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+      certificateImg.alt = item.officialRating;
+      details.appendChild(certificateImg);
+    }
+
+    // Overview (if available)
+    if (item.overview) {
+      const overview = document.createElement("div");
+      overview.className = "scrollable-overview";
+
+      const overviewText = document.createElement("p");
+      overviewText.textContent = item.overview || "No description available.";
+      overview.appendChild(overviewText);
+      details.appendChild(overview);
+    }
+
+    // Add the details and poster to the container
+    container.appendChild(posterWrapper);
+    container.appendChild(details);
+
+    // Append the container to the wrapper
+    wrapper.appendChild(container);
+    
+    return wrapper;
   },
 });
