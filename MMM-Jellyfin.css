@@ -19,8 +19,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 100%; /* Ensure container takes full width */
-  height: auto;
+  width: 100%;
 }
 
 .jellyfin-details {
@@ -30,6 +29,7 @@
   align-items: flex-start;
   text-align: left; /* Align text to the left */
   width: calc(100% - 130px); /* Adjust width to leave space for the poster */
+  padding-right: 10px; /* Ensure space for poster */
 }
 
 .jellyfin-certificate {
@@ -46,7 +46,6 @@
   object-fit: cover; /* Maintain aspect ratio */
   margin-left: 10px; /* Add spacing between the poster and details */
   flex-shrink: 0; /* Prevent shrinking of the poster */
-  flex-grow: 0; /* Ensure the poster doesn’t take any more space than its fixed size */
 }
 
 .scrollable-overview {
