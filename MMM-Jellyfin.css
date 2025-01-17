@@ -45,6 +45,7 @@
   height: 200px;
   object-fit: cover; /* Maintain aspect ratio */
   margin-left: 10px; /* Add spacing between the poster and details */
+  flex-shrink: 0; /* Prevent shrinking of the poster */
 }
 
 .scrollable-overview {
