@@ -59,8 +59,8 @@
 }
 
 .jellyfin-overview {
-  font-size: 0.75em;
-  /*line-height: 1.2em;
+  font-size: 0.8em; /* Match font size to premiere date */
+  line-height: 1.2em;
   max-height: calc(1.2em * 5); /* Limit to 5 lines */
   overflow: hidden;
   text-overflow: ellipsis;
