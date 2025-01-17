@@ -10,7 +10,8 @@ Module.register("MMM-Jellyfin", {
     rotateInterval: 30 * 1000, // Rotate items every 30 seconds
     nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
     retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    updateOnlyChangedParts: true, // Update only the changed parts of the DOM
+    title: "Jellyfin",
   },
 
   getStyles() {
@@ -86,10 +87,11 @@ Module.register("MMM-Jellyfin", {
         this.nowPlaying = null;
         this.updateHeader(`${this.config.title}: Recently Added`);
       }
+
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader(""); // Clear the header when offline
+      this.updateHeader("");
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
@@ -116,52 +118,46 @@ Module.register("MMM-Jellyfin", {
     const container = document.createElement("div");
     container.className = "jellyfin-container";
 
-    const posterWrapper = document.createElement("div");
-    posterWrapper.style.marginRight = "10px";
-
     const poster = document.createElement("img");
-    poster.src = item.poster || "";
     poster.className = "jellyfin-poster";
-    posterWrapper.appendChild(poster);
+    poster.src = item.poster || "";
+    container.appendChild(poster);
 
     const details = document.createElement("div");
     details.className = "jellyfin-details";
 
-    const title = document.createElement("h2");
+    const title = document.createElement("div");
+    title.className = "jellyfin-title";
     title.textContent = item.title || "Untitled";
-    title.style.fontSize = "0.9em";
-    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
     if (item.premiereDate) {
       const date = document.createElement("div");
+      date.className = "jellyfin-premiere-date";
       const formattedDate = new Date(item.premiereDate).toLocaleDateString();
       date.textContent = `Premiere: ${formattedDate}`;
-      date.style.fontSize = "0.8em";
-      date.style.color = "#ccc";
-      date.style.marginBottom = "4px";
       details.appendChild(date);
     }
 
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
+      certificateImg.className = "jellyfin-certificate";
       certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
       certificateImg.alt = item.officialRating;
-      certificateImg.className = "jellyfin-certificate";
       details.appendChild(certificateImg);
     }
 
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "scrollable-overview";
-      overview.innerHTML = `<p>${item.overview}</p>`;
+      const overviewText = document.createElement("p");
+      overviewText.textContent = item.overview || "No description available.";
+      overview.appendChild(overviewText);
       details.appendChild(overview);
     }
 
-    container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
-
     return wrapper;
   },
 });
