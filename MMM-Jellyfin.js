@@ -135,7 +135,8 @@ Module.register("MMM-Jellyfin", {
         certRuntimeContainer.appendChild(certificateImg);
       }
   
-      if (item.runTimeTicks) {
+      // Ensure runTimeTicks is available and formatted properly
+      if (item.runTimeTicks && item.runTimeTicks > 0) {
         const runtime = document.createElement("div");
         runtime.className = "jellyfin-runtime";
         const runtimeMinutes = Math.floor(item.runTimeTicks / 600000000); // Convert ticks to minutes

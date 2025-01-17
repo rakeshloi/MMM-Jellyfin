@@ -52,7 +52,7 @@ module.exports = NodeHelper.create({
           params: {
             IncludeItemTypes: config.contentType,
             Limit: config.maxItems,
-            Fields: "Overview,MediaSourceCount",
+            Fields: "Overview,MediaSourceCount,RunTimeTicks", // Ensure RunTimeTicks is requested
             ParentId: config.parentId || null,
             ImageTypeLimit: 1,
             EnableImageTypes: "Primary,Thumb,Banner",
@@ -63,13 +63,13 @@ module.exports = NodeHelper.create({
           },
         }
       );
-
+  
       return response.data.map((item) => {
         const posterUrl =
           item.ImageTags && item.ImageTags.Primary
             ? `${config.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${config.apiKey}`
             : null;
-
+  
         return {
           id: item.Id,
           title: item.Name || "Untitled",
@@ -77,13 +77,14 @@ module.exports = NodeHelper.create({
           premiereDate: item.PremiereDate || "",
           overview: item.Overview || "",
           poster: posterUrl,
+          runTimeTicks: item.RunTimeTicks || 0,  // Add RunTimeTicks to the returned data
         };
       });
     } catch (error) {
       console.error("[MMM-Jellyfin] Error fetching recently added data:", error);
       return [];
     }
-  },
+  }, 
 
   socketNotificationReceived(notification, payload) {
     if (notification === "FETCH_JELLYFIN_DATA") {

@@ -38,7 +38,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 8px;
+  gap: 10px;  /* Adjust gap for spacing */
   margin: 5px 0;
 }
 
@@ -50,6 +50,7 @@
 .jellyfin-runtime {
   font-size: 0.8em;
   color: #ccc;
+  margin-left: 10px; /* Adds space between certificate and runtime */
 }
 
 .jellyfin-premiere-date {
