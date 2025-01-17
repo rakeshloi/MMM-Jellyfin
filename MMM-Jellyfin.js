@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
-    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
-    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
-    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    updateInterval: 1 * 60 * 1000,
+    rotateInterval: 30 * 1000,
+    nowPlayingCheckInterval: 15 * 1000,
+    retryInterval: 5 * 60 * 1000,
+    title: "Jellyfin",
   },
 
   getStyles() {
@@ -89,7 +89,7 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader(""); // Clear the header when offline
+      this.updateHeader("");
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
@@ -98,66 +98,74 @@ Module.register("MMM-Jellyfin", {
     this.data.header = text;
     this.updateDom();
   },
+
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    // Check if offline
     if (this.offline) {
-        wrapper.innerHTML = "Jellyfin is offline.";
-        return wrapper;
+      return wrapper;
     }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-        wrapper.innerHTML = "Loading...";
-        return wrapper;
+      wrapper.innerHTML = "";
+      return wrapper;
     }
 
     const container = document.createElement("div");
     container.className = "jellyfin-container";
 
-    // Poster
     const posterWrapper = document.createElement("div");
-    posterWrapper.className = "jellyfin-poster-wrapper";
+    posterWrapper.style.marginRight = "10px";
 
     const poster = document.createElement("img");
     poster.src = item.poster || "";
-    poster.className = "jellyfin-poster";
-
+    poster.style.width = "120px";
+    poster.style.height = "200px";
+    poster.style.objectFit = "cover";
     posterWrapper.appendChild(poster);
-    container.appendChild(posterWrapper);
 
-    // Details
     const details = document.createElement("div");
     details.className = "jellyfin-details";
 
     const title = document.createElement("h2");
-    title.className = "jellyfin-title";
     title.textContent = item.title || "Untitled";
+    title.style.fontSize = "0.9em";
+    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
-    const premiereDate = document.createElement("div");
-    premiereDate.className = "jellyfin-premiere-date";
-    premiereDate.textContent = `Premiere: ${new Date(item.premiereDate).toLocaleDateString()}`;
-    details.appendChild(premiereDate);
-
-    if (item.officialRating) {
-        const certImage = document.createElement("img");
-        certImage.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
-        certImage.alt = item.officialRating;
-        certImage.className = "jellyfin-certificate";
-        details.appendChild(certImage);
+    if (item.premiereDate) {
+      const date = document.createElement("div");
+      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
+      date.textContent = `Premiere: ${formattedDate}`;
+      date.style.fontSize = "0.8em";
+      date.style.color = "#ccc";
+      date.style.marginBottom = "4px";
+      details.appendChild(date);
     }
 
-    const overview = document.createElement("p");
-    overview.className = "scrollable-overview";
-    overview.textContent = item.overview || "No description available.";
-    details.appendChild(overview);
+    if (item.officialRating) {
+      const certificateImg = document.createElement("img");
+      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+      certificateImg.alt = item.officialRating;
+      certificateImg.className = "jellyfin-certificate";
+      details.appendChild(certificateImg);
+    }
 
+    if (item.overview) {
+      const overviewContainer = document.createElement("div");
+      overviewContainer.className = "scrollable-overview";
+      const overview = document.createElement("p");
+      overview.textContent = item.overview || "No description available.";
+      overviewContainer.appendChild(overview);
+      details.appendChild(overviewContainer);
+    }
+
+    container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
 
     return wrapper;
-},
+  },
 });

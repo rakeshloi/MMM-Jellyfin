@@ -1,98 +1,77 @@
-/* Main Wrapper */
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: column; /* Stack items vertically */
-  justify-content: flex-start;
-  align-items: center;
+  flex-direction: row;
+  justify-content: flex-end;
+  align-items: flex-start;
   width: auto;
   max-width: 450px;
-  margin: 0 auto;
-  padding: 10px;
+  margin-left: auto;
+  margin-right: 0;
+  padding: 0;
   box-sizing: border-box;
+  position: relative;
+  overflow: visible;
   background: none;
 }
 
-/* Container for Poster and Details */
 .jellyfin-container {
   display: flex;
-  flex-direction: row; /* Side-by-side layout */
+  flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.jellyfin-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
   width: 100%;
 }
 
-/* Poster */
-.jellyfin-poster-wrapper {
-  flex-shrink: 0; /* Prevent poster from shrinking */
-  margin-right: 15px;
+.jellyfin-certificate {
+  width: 25px;
+  height: auto;
+  margin: 5px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  align-self: flex-end;
 }
 
 .jellyfin-poster {
   width: 120px;
-  height: auto;
+  height: 200px;
   object-fit: cover;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  margin-right: 10px;
 }
 
-/* Details */
-.jellyfin-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
-  text-align: left; /* Align text content to the left */
-  flex-grow: 1;
-}
-
-/* Title */
-.jellyfin-title {
-  font-size: 1em;
-  font-weight: bold;
-  margin: 0 0 5px 0;
-  color: #fff;
-}
-
-/* Premiere Date */
-.jellyfin-premiere-date {
-  font-size: 0.9em;
-  margin-bottom: 5px;
-  color: #ccc;
-}
-
-/* Certificate */
-.jellyfin-certificate {
-  width: 25px;
-  height: auto;
-  margin-bottom: 10px;
-  align-self: flex-start; /* Align certificate to the left within details */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-  border-radius: 3px;
-}
-
-/* Overview (Scrollable) */
 .scrollable-overview {
-  font-size: 0.85em;
-  line-height: 1.2em;
-  max-height: 3.6em; /* Limit to 3 lines */
+  max-height: 4.8em;
   overflow: hidden;
   position: relative;
-  text-overflow: ellipsis;
+}
+
+.scrollable-overview p {
+  display: inline-block;
   white-space: nowrap;
   animation: scroll-overview 25s linear infinite;
 }
 
 @keyframes scroll-overview {
   0% {
-      transform: translateY(0);
+    transform: translateY(0);
   }
   10% {
-      transform: translateY(0); /* Pause briefly */
+    transform: translateY(0);
   }
   90% {
-      transform: translateY(-100%);
+    transform: translateY(-100%);
   }
   100% {
-      transform: translateY(-100%);
-  }
+    transform: translateY(-100%);
 }
