@@ -1,7 +1,7 @@
 .jellyfin-wrapper {
   display: flex;
   flex-direction: row; /* Poster on the left, details on the right */
-  justify-content: flex-start; /* Align content within the module bounds */
+  justify-content: flex-start; /* Align content to the left */
   align-items: flex-start;
   width: auto;
   max-width: 450px; /* Restrict module width */
@@ -10,7 +10,7 @@
   padding: 10px; /* Add padding for aesthetics */
   box-sizing: border-box;
   position: relative;
-  overflow: hidden; /* Ensure content does not overflow */
+  overflow: hidden; /* Prevent content from overflowing */
   background: none;
 }
 
@@ -19,7 +19,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 100%; /* Ensure it takes the full width of the module */
+  width: 100%; /* Ensure container takes full width */
   height: auto;
   margin: 0;
   padding: 0;
@@ -32,7 +32,7 @@
   justify-content: flex-start;
   align-items: flex-end; /* Align details to the right */
   text-align: right; /* Right-align the text */
-  width: 100%; /* Take up the available width */
+  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
 }
 
 .jellyfin-certificate {
@@ -41,7 +41,7 @@
   margin: 5px 0; /* Small spacing for aesthetic alignment */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
   border-radius: 4px;
-  align-self: flex-end; /* Ensures the certificate image is aligned to the right */
+  align-self: flex-end; /* Ensure the certificate image is aligned to the right */
 }
 
 .jellyfin-poster {
