@@ -70,32 +70,23 @@ Module.register("MMM-Jellyfin", {
       this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
-        if (payload.data && payload.data.title) {
-          if (
-            !this.nowPlaying ||
-            JSON.stringify(this.nowPlaying) !== JSON.stringify(payload.data)
-          ) {
-            this.nowPlaying = payload.data;
-            this.items = [];
-            this.updateHeader(`${this.config.title}: Now Playing`);
-            this.updateDom();
-          }
+        if (payload.data) {
+          this.nowPlaying = payload.data;
+          this.items = [];
+          this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
-          if (this.nowPlaying) {
-            this.nowPlaying = null;
-            this.updateHeader(`${this.config.title}: Recently Added`);
-            this.getData();
-          }
+          this.nowPlaying = null;
+          this.updateHeader(`${this.config.title}: Recently Added`);
         }
       } else if (payload.type === "recentlyAdded") {
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
           this.currentIndex = 0;
-          this.nowPlaying = null;
-          this.updateHeader(`${this.config.title}: Recently Added`);
-          this.updateDom();
         }
+        this.nowPlaying = null;
+        this.updateHeader(`${this.config.title}: Recently Added`);
       }
+      this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
       this.updateHeader("");
@@ -108,7 +99,7 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  getDom() {
+  getDom: function () {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
@@ -163,18 +154,14 @@ Module.register("MMM-Jellyfin", {
       overview.appendChild(overviewText);
       details.appendChild(overview);
 
-      setTimeout(() => {
-        const lineHeight = parseFloat(
-          getComputedStyle(overviewText).lineHeight
-        );
-        const maxAllowedHeight = lineHeight * 4;
+      const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
+      const maxAllowedHeight = lineHeight * 4;
 
-        if (overviewText.scrollHeight > maxAllowedHeight) {
-          overviewText.classList.add("scrollable-content");
-        } else {
-          overviewText.classList.remove("scrollable-content");
-        }
-      }, 500);
+      if (overviewText.scrollHeight > maxAllowedHeight) {
+        overviewText.classList.add("scrollable-content");
+      } else {
+        overviewText.classList.remove("scrollable-content");
+      }
     }
 
     if (this.nowPlaying) {
@@ -188,18 +175,22 @@ Module.register("MMM-Jellyfin", {
       progressBar.className = "jellyfin-progress-bar";
 
       const progressFill = document.createElement("div");
+      progressFill.className = "jellyfin-progress-fill";
       progressFill.style.width = `${progressPct}%`;
+      progressFill.style.backgroundColor = this.nowPlaying.isPaused ? "#f00" : "#0f0";
+
       progressBar.appendChild(progressFill);
 
       const timeRemaining =
-        Math.max(
-          0,
-          this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-        ) / 10000000;
+        Math.max(0, this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks) /
+        10000000;
+      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
+        Math.floor(timeRemaining % 60)
+      }s remaining`;
+
       const timeLabel = document.createElement("div");
-      timeLabel.textContent = `${Math.floor(timeRemaining / 60)}m ${Math.floor(
-        timeRemaining % 60
-      )}s remaining`;
+      timeLabel.className = "jellyfin-time-label";
+      timeLabel.textContent = timeRemainingText;
 
       progressContainer.appendChild(progressBar);
       progressContainer.appendChild(timeLabel);
