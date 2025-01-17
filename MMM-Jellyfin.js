@@ -35,7 +35,7 @@ Module.register("MMM-Jellyfin", {
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
-        this.updateDom();
+        this.updateDom({ force: false });
       }
     }, this.config.rotateInterval);
 
@@ -86,7 +86,7 @@ Module.register("MMM-Jellyfin", {
         this.nowPlaying = null;
         this.updateHeader(`${this.config.title}: Recently Added`);
       }
-      this.updateDom();
+      this.updateDom({ force: false });
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
       this.updateHeader("");
@@ -96,7 +96,7 @@ Module.register("MMM-Jellyfin", {
 
   updateHeader(text) {
     this.data.header = text;
-    this.updateDom();
+    this.updateDom({ force: false });
   },
 
   getDom: function () {
