@@ -67,6 +67,7 @@
   display: -webkit-box;
   -webkit-line-clamp: 5; /* Limit to 5 lines */
   -webkit-box-orient: vertical;
+  white-space: normal; /* Ensure text wraps */
 }
 
 .jellyfin-poster {
