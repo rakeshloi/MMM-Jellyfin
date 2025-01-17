@@ -98,77 +98,66 @@ Module.register("MMM-Jellyfin", {
     this.data.header = text;
     this.updateDom();
   },
-
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
+    // Check if offline
     if (this.offline) {
-      return wrapper;
+        wrapper.innerHTML = "Jellyfin is offline.";
+        return wrapper;
     }
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML = "";
-      return wrapper;
+        wrapper.innerHTML = "Loading...";
+        return wrapper;
     }
 
     const container = document.createElement("div");
-    container.style.display = "flex";
-    container.style.alignItems = "center";
+    container.className = "jellyfin-container";
 
+    // Poster
     const posterWrapper = document.createElement("div");
-    posterWrapper.style.marginRight = "10px";
+    posterWrapper.className = "jellyfin-poster-wrapper";
 
     const poster = document.createElement("img");
     poster.src = item.poster || "";
-    poster.style.width = "120px";
-    poster.style.height = "200px";
-    poster.style.objectFit = "cover";
-    posterWrapper.appendChild(poster);
+    poster.className = "jellyfin-poster";
 
+    posterWrapper.appendChild(poster);
+    container.appendChild(posterWrapper);
+
+    // Details
     const details = document.createElement("div");
-    details.style.display = "flex";
-    details.style.flexDirection = "column";
+    details.className = "jellyfin-details";
 
     const title = document.createElement("h2");
+    title.className = "jellyfin-title";
     title.textContent = item.title || "Untitled";
-    title.style.fontSize = "0.9em";
-    title.style.margin = "0 0 4px 0";
     details.appendChild(title);
 
-    // Display Certificate Image
-    // Inside your getDom function, ensure the certificate image is styled with the class:
+    const premiereDate = document.createElement("div");
+    premiereDate.className = "jellyfin-premiere-date";
+    premiereDate.textContent = `Premiere: ${new Date(item.premiereDate).toLocaleDateString()}`;
+    details.appendChild(premiereDate);
+
     if (item.officialRating) {
-      const certificateImg = document.createElement("img");
-      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
-      certificateImg.alt = item.officialRating;
-      certificateImg.className = "jellyfin-certificate"; // Apply the class here
-      details.appendChild(certificateImg);
+        const certImage = document.createElement("img");
+        certImage.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+        certImage.alt = item.officialRating;
+        certImage.className = "jellyfin-certificate";
+        details.appendChild(certImage);
     }
 
-    if (item.premiereDate) {
-      const date = document.createElement("div");
-      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
-      date.textContent = `Premiere: ${formattedDate}`;
-      date.style.fontSize = "0.8em";
-      date.style.color = "#ccc";
-      date.style.marginBottom = "4px";
-      details.appendChild(date);
-    }
+    const overview = document.createElement("p");
+    overview.className = "scrollable-overview";
+    overview.textContent = item.overview || "No description available.";
+    details.appendChild(overview);
 
-    if (item.overview) {
-      const overview = document.createElement("p");
-      overview.textContent = item.overview || "No description available.";
-      overview.style.fontSize = "0.75em";
-      overview.style.lineHeight = "1.2em";
-      details.appendChild(overview);
-    }
-
-    container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
 
     return wrapper;
-  },
+},
 });

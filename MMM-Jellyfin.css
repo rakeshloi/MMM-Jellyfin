@@ -1,52 +1,98 @@
+/* Main Wrapper */
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Poster on the left, details on the right */
-  justify-content: flex-end;
-  align-items: flex-start;
+  flex-direction: column; /* Stack items vertically */
+  justify-content: flex-start;
+  align-items: center;
   width: auto;
   max-width: 450px;
-  margin-left: auto;
-  margin-right: 0;
-  padding: 0;
+  margin: 0 auto;
+  padding: 10px;
   box-sizing: border-box;
-  position: relative;
-  overflow: visible;
   background: none;
 }
 
+/* Container for Poster and Details */
 .jellyfin-container {
   display: flex;
-  flex-direction: row;
+  flex-direction: row; /* Side-by-side layout */
   align-items: flex-start;
   justify-content: flex-start;
-  width: auto;
-  height: auto;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  width: 100%;
 }
 
-.jellyfin-details {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-end; /* Ensure all content aligns to the right */
-  text-align: right; /* Align text content to the right */
-  width: 100%; /* Let it occupy the full available width */
-}
-
-.jellyfin-certificate {
-  width: 35px; /* Adjusted size for a smaller certificate */
-  height: auto;
-  margin: 5px 0; /* Small spacing for aesthetic alignment */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
-  border-radius: 4px;
-  align-self: flex-end; /* Ensures the certificate image is aligned to the right */
+/* Poster */
+.jellyfin-poster-wrapper {
+  flex-shrink: 0; /* Prevent poster from shrinking */
+  margin-right: 15px;
 }
 
 .jellyfin-poster {
   width: 120px;
-  height: 200px;
+  height: auto;
   object-fit: cover;
-  margin-right: 10px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Details */
+.jellyfin-details {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  text-align: left; /* Align text content to the left */
+  flex-grow: 1;
+}
+
+/* Title */
+.jellyfin-title {
+  font-size: 1em;
+  font-weight: bold;
+  margin: 0 0 5px 0;
+  color: #fff;
+}
+
+/* Premiere Date */
+.jellyfin-premiere-date {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+  color: #ccc;
+}
+
+/* Certificate */
+.jellyfin-certificate {
+  width: 25px;
+  height: auto;
+  margin-bottom: 10px;
+  align-self: flex-start; /* Align certificate to the left within details */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+}
+
+/* Overview (Scrollable) */
+.scrollable-overview {
+  font-size: 0.85em;
+  line-height: 1.2em;
+  max-height: 3.6em; /* Limit to 3 lines */
+  overflow: hidden;
+  position: relative;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  animation: scroll-overview 25s linear infinite;
+}
+
+@keyframes scroll-overview {
+  0% {
+      transform: translateY(0);
+  }
+  10% {
+      transform: translateY(0); /* Pause briefly */
+  }
+  90% {
+      transform: translateY(-100%);
+  }
+  100% {
+      transform: translateY(-100%);
+  }
 }
