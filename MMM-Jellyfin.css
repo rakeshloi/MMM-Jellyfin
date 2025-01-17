@@ -65,7 +65,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2em; /* Set a fixed line height */
-  max-height: calc(1.5em * 5); /* Ensure the container height can hold 5 lines */
+  max-height: calc(1.2em * 5); /* Ensure the container height can hold 5 lines */
   box-sizing: border-box; /* Handle padding properly */
 }
 
