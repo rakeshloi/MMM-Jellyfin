@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000,
-    rotateInterval: 30 * 1000,
-    nowPlayingCheckInterval: 15 * 1000,
-    retryInterval: 5 * 60 * 1000,
-    title: "Jellyfin",
+    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
+    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
+    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
+    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
+    title: "Jellyfin", // Default module title
   },
 
   getStyles() {
@@ -18,35 +18,38 @@ Module.register("MMM-Jellyfin", {
   },
 
   start() {
+    console.log("[MMM-Jellyfin] Starting module...");
     this.items = [];
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
 
+    // Fetch "Recently Added" data immediately
     this.getData();
-    this.setupIntervals();
-  },
 
-  setupIntervals() {
+    // Periodically refresh "Recently Added" data
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
       }
     }, this.config.updateInterval);
 
+    // Rotate through "Recently Added" items
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
-        this.updatePartialDom(false);
+        this.updateDom();
       }
     }, this.config.rotateInterval);
 
+    // Check for "Now Playing" updates
     setInterval(() => {
       if (!this.offline) {
         this.checkNowPlaying();
       }
     }, this.config.nowPlayingCheckInterval);
 
+    // Retry fetching data if offline
     setInterval(() => {
       if (this.offline) {
         this.getData();
@@ -69,52 +72,36 @@ Module.register("MMM-Jellyfin", {
   socketNotificationReceived(notification, payload) {
     if (notification === "JELLYFIN_DATA") {
       this.offline = false;
+      this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
         if (payload.data) {
-          if (JSON.stringify(this.nowPlaying) !== JSON.stringify(payload.data)) {
-            this.nowPlaying = payload.data;
-            this.updatePartialDom(true);
-          }
+          this.nowPlaying = payload.data;
+          this.items = []; // Clear "Recently Added" while "Now Playing" is active
+          this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
           this.nowPlaying = null;
-          this.updatePartialDom(false);
+          this.updateHeader(`${this.config.title}: Now Showing`);
         }
       } else if (payload.type === "recentlyAdded") {
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
           this.currentIndex = 0;
-          this.updatePartialDom(false);
         }
+        this.nowPlaying = null;
+        this.updateHeader(`${this.config.title}: Recently Added`);
       }
+      this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
+      this.updateHeader(""); // Clear the header when offline
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
 
-  updatePartialDom(isNowPlaying = false) {
-    if (isNowPlaying) {
-      const progressBar = document.querySelector(".jellyfin-progress-fill");
-      const timeLabel = document.querySelector(".jellyfin-time-label");
-      if (progressBar && timeLabel && this.nowPlaying) {
-        const progressPct =
-          (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100;
-        progressBar.style.width = `${progressPct}%`;
-        progressBar.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
-
-        const timeRemaining =
-          Math.max(
-            0,
-            this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
-          ) / 10000000;
-        timeLabel.textContent = `${Math.floor(timeRemaining / 60)}m ${
-          Math.floor(timeRemaining % 60)
-        }s remaining`;
-      }
-    } else {
-      this.updateDom();
-    }
+  updateHeader(text) {
+    this.data.header = text;
+    this.updateDom();
   },
 
   getDom() {
@@ -172,39 +159,27 @@ Module.register("MMM-Jellyfin", {
       overview.appendChild(overviewText);
       details.appendChild(overview);
 
-      const lineHeight = 1.2 * parseFloat(getComputedStyle(overviewText).fontSize);
-      const maxHeight = lineHeight * 4;
+      // Temporarily add to DOM to measure height
+      wrapper.appendChild(container);
+      document.body.appendChild(wrapper);
 
-      if (overviewText.scrollHeight > maxHeight) {
+      // Calculate line height and maximum allowed height
+      const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
+      const maxAllowedHeight = lineHeight * 4;
+
+      // Check if the content exceeds 4 lines
+      if (overviewText.scrollHeight > maxAllowedHeight) {
         overviewText.classList.add("scrollable-content");
       } else {
         overviewText.classList.remove("scrollable-content");
       }
-    }
 
-    if (this.nowPlaying) {
-      const progressContainer = document.createElement("div");
-      progressContainer.className = "jellyfin-progress-container";
-
-      const progressBar = document.createElement("div");
-      progressBar.className = "jellyfin-progress-bar";
-
-      const progressFill = document.createElement("div");
-      progressFill.className = "jellyfin-progress-fill";
-
-      progressBar.appendChild(progressFill);
-      progressContainer.appendChild(progressBar);
-
-      const timeLabel = document.createElement("div");
-      timeLabel.className = "jellyfin-time-label";
-      progressContainer.appendChild(timeLabel);
-
-      details.appendChild(progressContainer);
+      // Remove from DOM after measurement
+      document.body.removeChild(wrapper);
     }
 
     container.appendChild(details);
     wrapper.appendChild(container);
-
     return wrapper;
   },
 });
