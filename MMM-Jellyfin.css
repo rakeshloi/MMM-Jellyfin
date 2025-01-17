@@ -1,16 +1,16 @@
 .jellyfin-wrapper {
   display: flex;
   flex-direction: row; /* Poster on the left, details on the right */
-  justify-content: flex-start; /* Align content to the left */
+  justify-content: flex-start;
   align-items: flex-start;
   width: auto;
   max-width: 450px; /* Restrict module width */
   margin-left: auto;
   margin-right: 0;
-  padding: 10px; /* Add padding for aesthetics */
+  padding: 10px;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden; /* Prevent content from overflowing */
+  overflow: hidden;
   background: none;
 }
 
@@ -19,7 +19,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 100%; /* Ensure container takes full width */
+  width: 100%;
   height: auto;
   margin: 0;
   padding: 0;
@@ -30,43 +30,44 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-end; /* Align details to the right */
-  text-align: right; /* Right-align the text */
-  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
+  align-items: flex-end;
+  text-align: right;
+  width: calc(100% - 130px); /* Adjust width for poster */
 }
 
 .jellyfin-certificate {
-  width: 25px; /* Adjusted size for a smaller certificate */
+  width: 25px;
   height: auto;
-  margin: 5px 0; /* Small spacing for aesthetic alignment */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
+  margin: 5px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
-  align-self: flex-end; /* Ensure the certificate image is aligned to the right */
+  align-self: flex-end;
 }
 
 .jellyfin-poster {
   width: 120px;
   height: 200px;
-  object-fit: cover; /* Maintain aspect ratio */
-  margin-right: 10px; /* Add spacing between the poster and details */
+  object-fit: cover;
+  margin-right: 10px;
 }
 
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 6em; /* Allow 5 lines at 1.2em line height */
-  overflow: hidden; /* Prevent text overflow */
+  max-height: 4.8em; /* 4 lines at 1.2em line height */
+  overflow: hidden;
   position: relative;
-  text-align: right; /* Align text to the right */
-  white-space: normal; /* Allow wrapping within the container */
+  text-align: right;
+  white-space: normal;
 }
 
 .scrollable-overview p {
   display: inline-block;
-  white-space: normal; /* Ensure multi-line wrapping */
-  line-height: 1.2em; /* Ensure consistent line spacing */
-  overflow: hidden; /* Hide overflowing content */
-  animation: scroll-overview 25s linear forwards; /* Smooth scrolling, no looping */
+  white-space: normal;
+  max-height: 4.8em; /* Enforce the 4-line limit */
+  line-height: 1.2em;
+  overflow: hidden;
+  animation: scroll-overview 25s linear forwards;
 }
 
 @keyframes scroll-overview {
@@ -74,10 +75,10 @@
     transform: translateY(0);
   }
   10% {
-    transform: translateY(0); /* Pause briefly */
+    transform: translateY(0);
   }
   90% {
-    transform: translateY(-100%); /* Scroll the text */
+    transform: translateY(-100%);
   }
   100% {
     transform: translateY(-100%);

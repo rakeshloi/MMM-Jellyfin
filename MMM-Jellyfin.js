@@ -103,17 +103,15 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  getDom() {
+  ggetDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
   
-    // Check if we are offline
     if (this.offline) {
       wrapper.innerHTML = "Jellyfin is offline...";
       return wrapper;
     }
   
-    // Get the current item (either now playing or recently added)
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
       wrapper.innerHTML = "Loading Jellyfin data...";
@@ -123,7 +121,6 @@ Module.register("MMM-Jellyfin", {
     const container = document.createElement("div");
     container.className = "jellyfin-container";
   
-    // Poster section
     const posterWrapper = document.createElement("div");
     posterWrapper.style.display = "flex";
     posterWrapper.style.alignItems = "center";
@@ -134,7 +131,6 @@ Module.register("MMM-Jellyfin", {
     poster.src = item.poster || "";
     posterWrapper.appendChild(poster);
   
-    // Title section
     const details = document.createElement("div");
     details.className = "jellyfin-details";
   
@@ -143,7 +139,6 @@ Module.register("MMM-Jellyfin", {
     title.textContent = item.title || "Untitled";
     details.appendChild(title);
   
-    // Add Premiere Date
     if (item.premiereDate) {
       const date = document.createElement("div");
       date.className = "jellyfin-premiere-date";
@@ -152,7 +147,6 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(date);
     }
   
-    // Add Certificate (if available)
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.className = "jellyfin-certificate";
@@ -161,7 +155,6 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(certificateImg);
     }
   
-    // Add overview text (to be handled later)
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "scrollable-overview";
@@ -170,15 +163,28 @@ Module.register("MMM-Jellyfin", {
       overviewText.textContent = item.overview || "No description available.";
       overview.appendChild(overviewText);
       details.appendChild(overview);
+  
+      // Temporarily add to DOM to measure height
+      wrapper.appendChild(container);
+      document.body.appendChild(wrapper);
+  
+      // Calculate line height and maximum allowed height
+      const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
+      const maxAllowedHeight = lineHeight * 4;
+  
+      // Check if the content exceeds 4 lines
+      if (overviewText.scrollHeight > maxAllowedHeight) {
+        overviewText.classList.add("scrollable-content");
+      } else {
+        overviewText.classList.remove("scrollable-content");
+      }
+  
+      // Remove from DOM after measurement
+      document.body.removeChild(wrapper);
     }
   
-    // Add details and poster to the container
-    container.appendChild(posterWrapper);
     container.appendChild(details);
-  
-    // Append the container to the wrapper
     wrapper.appendChild(container);
-  
     return wrapper;
   },  
 });
