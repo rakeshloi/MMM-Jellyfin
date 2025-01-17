@@ -1,38 +1,39 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Poster on the right, text content on the left */
+  flex-direction: row-reverse; /* Poster on the right, details on the left */
   justify-content: space-between; /* Space between text and poster */
-  align-items: flex-start;
+  align-items: flex-start; /* Align content to the top */
   width: auto;
   max-width: 450px; /* Restrict module width */
-  margin: 0 auto; /* Center the module within the region */
+  margin: 0 auto; /* Center the module within its container */
   padding: 10px; /* Add padding for aesthetics */
   box-sizing: border-box;
   position: relative;
-  background: none;
   overflow: hidden; /* Prevent overflow */
+  background: none;
 }
 
 .jellyfin-container {
   display: flex;
-  flex-direction: row-reverse; /* Poster on the right */
+  flex-direction: row-reverse; /* Place the poster on the right */
   align-items: flex-start;
   justify-content: space-between;
   width: 100%; /* Occupy full width of the module */
-  height: auto;
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start; /* Align text to the left */
+  align-items: flex-start; /* Align text content to the left */
   text-align: left;
-  width: calc(100% - 130px); /* Leave space for the poster */
+  width: calc(100% - 140px); /* Leave room for the poster */
+  padding-right: 10px; /* Add space between text and poster */
+  box-sizing: border-box;
 }
 
 .jellyfin-certificate {
-  width: 25px;
+  width: 25px; /* Size for certificate image */
   height: auto;
   margin: 5px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -40,14 +41,14 @@
 }
 
 .jellyfin-poster {
-  width: 120px; /* Fixed width for poster */
-  height: 200px; /* Fixed height for poster */
-  object-fit: cover; /* Contain the image properly */
-  flex-shrink: 0; /* Prevent the poster from shrinking */
-  margin-left: 10px; /* Add spacing between poster and text */
-  max-width: 120px; /* Ensure the poster does not expand beyond this width */
-  max-height: 200px; /* Ensure the poster does not exceed this height */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional shadow for aesthetics */
+  width: 120px; /* Constrain the poster width */
+  height: 200px; /* Constrain the poster height */
+  object-fit: cover; /* Maintain aspect ratio while filling the space */
+  flex-shrink: 0; /* Prevent shrinking */
+  margin-left: 10px; /* Add space between poster and text */
+  border-radius: 4px; /* Optional: Rounded corners for aesthetics */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional shadow */
+  overflow: hidden; /* Prevent the poster from overflowing */
 }
 
 .scrollable-overview {
@@ -61,9 +62,9 @@
 
 .scrollable-overview p {
   display: inline-block;
-  white-space: normal; /* Wrap text properly */
-  max-height: 6em;
-  line-height: 1.2em;
+  white-space: normal; /* Allow text wrapping */
+  max-height: 6em; /* Enforce the 5-line limit */
+  line-height: 1.2em; /* Consistent line height */
   overflow: hidden;
   animation: scroll-overview 25s linear forwards; /* Smooth scrolling animation */
 }
