@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, 
-    rotateInterval: 30 * 1000, 
-    nowPlayingCheckInterval: 15 * 1000, 
-    retryInterval: 5 * 60 * 1000, 
-    title: "Jellyfin", 
+    updateInterval: 1 * 60 * 1000,
+    rotateInterval: 30 * 1000,
+    nowPlayingCheckInterval: 15 * 1000,
+    retryInterval: 5 * 60 * 1000,
+    title: "Jellyfin",
   },
 
   getStyles() {
@@ -18,17 +18,16 @@ Module.register("MMM-Jellyfin", {
   },
 
   start() {
+    console.log("[MMM-Jellyfin] Starting module...");
     this.items = [];
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
 
-    this.getData(); 
+    this.getData();
 
     setInterval(() => {
-      if (!this.nowPlaying) {
-        this.getData();
-      }
+      if (!this.nowPlaying) this.getData();
     }, this.config.updateInterval);
 
     setInterval(() => {
@@ -39,15 +38,11 @@ Module.register("MMM-Jellyfin", {
     }, this.config.rotateInterval);
 
     setInterval(() => {
-      if (!this.offline) {
-        this.checkNowPlaying();
-      }
+      if (!this.offline) this.checkNowPlaying();
     }, this.config.nowPlayingCheckInterval);
 
     setInterval(() => {
-      if (this.offline) {
-        this.getData();
-      }
+      if (this.offline) this.getData();
     }, this.config.retryInterval);
   },
 
@@ -102,9 +97,7 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
-    if (this.offline) {
-      return wrapper;
-    }
+    if (this.offline) return wrapper;
 
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
@@ -147,16 +140,25 @@ Module.register("MMM-Jellyfin", {
       overviewText.textContent = item.overview || "No description available.";
       overview.appendChild(overviewText);
       details.appendChild(overview);
+
+      const lineHeight = 1.2; // em
+      const maxLines = 5;
+      const maxHeight = `${lineHeight * maxLines}em`;
+
+      overview.style.maxHeight = maxHeight;
+      overview.style.overflow = "hidden";
+
+      overviewText.style.animation = overviewText.scrollHeight > parseFloat(maxHeight)
+        ? `scroll-overview 25s linear forwards`
+        : "none";
     }
 
-    const posterWrapper = document.createElement("div");
-    posterWrapper.className = "jellyfin-poster";
     const poster = document.createElement("img");
+    poster.className = "jellyfin-poster";
     poster.src = item.poster || "";
-    posterWrapper.appendChild(poster);
     container.appendChild(details);
-    container.appendChild(posterWrapper);
-    
+    container.appendChild(poster);
+
     wrapper.appendChild(container);
     return wrapper;
   },
