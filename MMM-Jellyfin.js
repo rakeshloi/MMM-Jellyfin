@@ -92,7 +92,6 @@ Module.register("MMM-Jellyfin", {
     this.data.header = text;
     this.updateDom();
   },
-
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
@@ -158,6 +157,13 @@ Module.register("MMM-Jellyfin", {
       progressBar.className = "jellyfin-progress-bar";
       const progressPercentage = (item.positionTicks / item.runTimeTicks) * 100;
       progressBar.style.width = `${progressPercentage}%`;
+  
+      // Change color based on playback state
+      if (item.isPaused) {
+        progressBar.style.backgroundColor = "red"; // Red when paused
+      } else {
+        progressBar.style.backgroundColor = "#4caf50"; // Green when playing
+      }
   
       progressBarContainer.appendChild(progressBar);
       details.appendChild(progressBarContainer);
