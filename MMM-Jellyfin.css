@@ -1,13 +1,13 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Poster on the left, details on the right */
+  flex-direction: row;
   justify-content: flex-start;
   align-items: flex-start;
   width: auto;
-  max-width: 450px; /* Restrict module width */
+  max-width: 450px;
   margin-left: auto;
   margin-right: 0;
-  padding: 10px;
+  padding: 0;
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -21,9 +21,6 @@
   justify-content: flex-start;
   width: 100%;
   height: auto;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
 }
 
 .jellyfin-details {
@@ -31,8 +28,8 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  text-align: left; /* Align text content to the left */
-  width: calc(100% - 130px); /* Leave space for the poster */
+  text-align: left;
+  width: calc(100% - 130px);
 }
 
 .jellyfin-certificate {
@@ -41,7 +38,6 @@
   margin: 5px 0;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
-  align-self: flex-end;
 }
 
 .jellyfin-poster {
@@ -54,10 +50,9 @@
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 6em; /* Limit to 5 lines (5 * 1.2em) */
+  max-height: 6em;
   overflow: hidden;
   position: relative;
-  display: block;
   text-align: left;
 }
 
@@ -67,18 +62,12 @@
   max-height: 6em;
   line-height: 1.2em;
   overflow: hidden;
-}
-
-.scrollable-content {
   animation: scroll-overview 25s linear forwards;
 }
 
 @keyframes scroll-overview {
   0% {
     transform: translateY(0);
-  }
-  90% {
-    transform: translateY(-100%);
   }
   100% {
     transform: translateY(-100%);

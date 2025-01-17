@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
-    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
-    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
-    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    updateInterval: 1 * 60 * 1000, 
+    rotateInterval: 30 * 1000, 
+    nowPlayingCheckInterval: 15 * 1000, 
+    retryInterval: 5 * 60 * 1000, 
+    title: "Jellyfin", 
   },
 
   getStyles() {
@@ -18,14 +18,12 @@ Module.register("MMM-Jellyfin", {
   },
 
   start() {
-    console.log("[MMM-Jellyfin] Starting module...");
     this.items = [];
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
-    this.lastFetchedItemId = null;  // Track the last fetched item
 
-    this.getData(); // Fetch "Recently Added" data immediately
+    this.getData(); 
 
     setInterval(() => {
       if (!this.nowPlaying) {
@@ -73,7 +71,7 @@ Module.register("MMM-Jellyfin", {
       if (payload.type === "nowPlaying") {
         if (payload.data) {
           this.nowPlaying = payload.data;
-          this.items = []; // Clear "Recently Added" while "Now Playing" is active
+          this.items = [];
           this.updateHeader(`${this.config.title}: Now Playing`);
         } else {
           this.nowPlaying = null;
@@ -90,7 +88,7 @@ Module.register("MMM-Jellyfin", {
       this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader(""); // Clear the header when offline
+      this.updateHeader("");
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
@@ -100,7 +98,7 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  getDom: function () {
+  getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
@@ -114,20 +112,16 @@ Module.register("MMM-Jellyfin", {
       return wrapper;
     }
 
-    const currentItemId = item.id;
-    const previousItemId = this.lastFetchedItemId;
-
-    if (currentItemId === previousItemId && this.isNowPlayingFetched) {
-      return wrapper;
-    }
-
     const container = document.createElement("div");
     container.className = "jellyfin-container";
 
+    const posterWrapper = document.createElement("div");
+    posterWrapper.className = "jellyfin-poster";
+
     const poster = document.createElement("img");
-    poster.className = "jellyfin-poster";
     poster.src = item.poster || "";
-    container.appendChild(poster);
+    posterWrapper.appendChild(poster);
+    container.appendChild(posterWrapper);
 
     const details = document.createElement("div");
     details.className = "jellyfin-details";
@@ -161,29 +155,10 @@ Module.register("MMM-Jellyfin", {
       overviewText.textContent = item.overview || "No description available.";
       overview.appendChild(overviewText);
       details.appendChild(overview);
-
-      wrapper.appendChild(container);
-      document.body.appendChild(wrapper);
-
-      const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
-      const maxAllowedHeight = lineHeight * 5;
-
-      if (overviewText.scrollHeight > maxAllowedHeight) {
-        overviewText.classList.add("scrollable-content");
-      } else {
-        overviewText.classList.remove("scrollable-content");
-      }
-
-      document.body.removeChild(wrapper);
     }
 
     container.appendChild(details);
     wrapper.appendChild(container);
-
-    this.lastFetchedItemId = currentItemId;
-
-    this.isNowPlayingFetched = true;
-
     return wrapper;
   },
 });

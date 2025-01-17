@@ -8,14 +8,10 @@ module.exports = NodeHelper.create({
 
   async fetchNowPlaying(serverUrl, apiKey, userId) {
     try {
-      // Call Jellyfin API for "Now Playing"
       const response = await axios.get(`${serverUrl}/Sessions`, {
-        params: {
-          api_key: apiKey,
-        },
+        params: { api_key: apiKey },
       });
 
-      // Filter out sessions with active playback
       const nowPlayingSession = response.data.find(
         (session) => session.NowPlayingItem && session.UserId === userId
       );
@@ -26,7 +22,6 @@ module.exports = NodeHelper.create({
 
       const item = nowPlayingSession.NowPlayingItem;
 
-      // Build poster URL
       const posterUrl =
         item.ImageTags && item.ImageTags.Primary
           ? `${serverUrl}/Items/${item.Id}/Images/Primary?api_key=${apiKey}`
@@ -58,7 +53,7 @@ module.exports = NodeHelper.create({
             IncludeItemTypes: config.contentType,
             Limit: config.maxItems,
             Fields: "Overview,MediaSourceCount",
-            ParentId: config.parentId || null, // Optional
+            ParentId: config.parentId || null,
             ImageTypeLimit: 1,
             EnableImageTypes: "Primary,Thumb,Banner",
             EnableTotalRecordCount: false,
@@ -103,18 +98,10 @@ module.exports = NodeHelper.create({
       console.log("[MMM-Jellyfin] Fetching now playing data...");
       const { serverUrl, apiKey, userId } = payload;
       this.fetchNowPlaying(serverUrl, apiKey, userId).then((nowPlayingItem) => {
-        if (nowPlayingItem) {
-          this.sendSocketNotification("JELLYFIN_DATA", {
-            type: "nowPlaying",
-            data: nowPlayingItem,
-          });
-        } else {
-          // If nothing is playing, clear the "Now Playing" data
-          this.sendSocketNotification("JELLYFIN_DATA", {
-            type: "nowPlaying",
-            data: null,
-          });
-        }
+        this.sendSocketNotification("JELLYFIN_DATA", {
+          type: "nowPlaying",
+          data: nowPlayingItem,
+        });
       });
     }
   },
