@@ -71,24 +71,31 @@ Module.register("MMM-Jellyfin", {
 
       if (payload.type === "nowPlaying") {
         if (payload.data && payload.data.title) {
-          this.nowPlaying = payload.data;
-          this.items = []; // Clear "Recently Added" while "Now Playing" is active
-          this.updateHeader(`${this.config.title}: Now Playing`);
+          if (
+            !this.nowPlaying ||
+            JSON.stringify(this.nowPlaying) !== JSON.stringify(payload.data)
+          ) {
+            this.nowPlaying = payload.data;
+            this.items = [];
+            this.updateHeader(`${this.config.title}: Now Playing`);
+            this.updateDom();
+          }
         } else {
-          this.nowPlaying = null;
-          this.updateHeader(`${this.config.title}: Recently Added`);
-          this.getData();
+          if (this.nowPlaying) {
+            this.nowPlaying = null;
+            this.updateHeader(`${this.config.title}: Recently Added`);
+            this.getData();
+          }
         }
       } else if (payload.type === "recentlyAdded") {
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
           this.currentIndex = 0;
+          this.nowPlaying = null;
+          this.updateHeader(`${this.config.title}: Recently Added`);
+          this.updateDom();
         }
-        this.nowPlaying = null;
-        this.updateHeader(`${this.config.title}: Recently Added`);
       }
-
-      this.updateDom();
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
       this.updateHeader("");
