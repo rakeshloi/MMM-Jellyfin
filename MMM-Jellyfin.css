@@ -43,7 +43,7 @@
 }
 
 .jellyfin-certificate {
-  width: 25px; /* Adjusted size for test a smaller certificate */
+  width: 25px; /* Adjusted size for a smaller certificate */
   height: auto;
 }
 
@@ -61,7 +61,7 @@
 .jellyfin-overview {
   display: -webkit-box;
   -webkit-line-clamp: 5; /* Limit to 5 lines */
-  line-clamp: 5; /* Standard property for compatibility */
+  line-clamp: 5;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
