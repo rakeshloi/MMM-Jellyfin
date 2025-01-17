@@ -1,16 +1,16 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row;
+  flex-direction: row; /* Poster on the right, details on the left */
   justify-content: flex-start;
   align-items: flex-start;
   width: auto;
-  max-width: 450px;
+  max-width: 450px; /* Restrict module width */
   margin-left: auto;
   margin-right: 0;
-  padding: 0;
+  padding: 10px; /* Add padding for aesthetics */
   box-sizing: border-box;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* Prevent content from overflowing */
   background: none;
 }
 
@@ -19,7 +19,7 @@
   flex-direction: row;
   align-items: flex-start;
   justify-content: flex-start;
-  width: 100%;
+  width: 100%; /* Ensure container takes full width */
   height: auto;
 }
 
@@ -28,30 +28,30 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  text-align: left;
-  width: calc(100% - 130px);
+  text-align: left; /* Align text to the left */
+  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
 }
 
 .jellyfin-certificate {
-  width: 25px;
+  width: 25px; /* Adjusted size for a smaller certificate */
   height: auto;
-  margin: 5px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin: 5px 0; /* Small spacing for aesthetic alignment */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
   border-radius: 4px;
 }
 
 .jellyfin-poster {
-  width: 120px;
+  width: 120px; /* Fixed width for the poster */
   height: 200px;
-  object-fit: cover;
-  margin-right: 10px;
+  object-fit: cover; /* Maintain aspect ratio */
+  margin-left: 10px; /* Add spacing between the poster and details */
 }
 
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 6em;
-  overflow: hidden;
+  max-height: 6em; /* Limit to 5 lines at 1.2em line height */
+  overflow: hidden; /* Prevent text overflow */
   position: relative;
   text-align: left;
 }

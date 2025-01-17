@@ -115,14 +115,6 @@ Module.register("MMM-Jellyfin", {
     const container = document.createElement("div");
     container.className = "jellyfin-container";
 
-    const posterWrapper = document.createElement("div");
-    posterWrapper.className = "jellyfin-poster";
-
-    const poster = document.createElement("img");
-    poster.src = item.poster || "";
-    posterWrapper.appendChild(poster);
-    container.appendChild(posterWrapper);
-
     const details = document.createElement("div");
     details.className = "jellyfin-details";
 
@@ -157,7 +149,14 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(overview);
     }
 
+    const posterWrapper = document.createElement("div");
+    posterWrapper.className = "jellyfin-poster";
+    const poster = document.createElement("img");
+    poster.src = item.poster || "";
+    posterWrapper.appendChild(poster);
     container.appendChild(details);
+    container.appendChild(posterWrapper);
+    
     wrapper.appendChild(container);
     return wrapper;
   },
