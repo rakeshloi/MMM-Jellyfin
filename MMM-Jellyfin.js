@@ -103,7 +103,7 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  ggetDom() {
+  getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
   
