@@ -103,44 +103,22 @@ Module.register("MMM-Jellyfin", {
     this.updateDom();
   },
 
-  getDom() {
+  getDom: function () {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
   
     if (this.offline) {
-      wrapper.innerHTML = "Jellyfin is offline...";
       return wrapper;
     }
   
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
-      wrapper.innerHTML = "Loading Jellyfin data...";
+      wrapper.innerHTML = "";
       return wrapper;
     }
   
     const container = document.createElement("div");
     container.className = "jellyfin-container";
-  
-    // Log the poster URL to verify it's being correctly set
-    console.log("Poster URL:", item.poster);
-  
-    const posterWrapper = document.createElement("div");
-    posterWrapper.style.display = "flex";
-    posterWrapper.style.alignItems = "center";
-    posterWrapper.style.marginRight = "10px";
-  
-    const poster = document.createElement("img");
-    poster.className = "jellyfin-poster";
-  
-    // If poster URL is available, set the src attribute
-    if (item.poster) {
-      poster.src = item.poster;
-    } else {
-      poster.src = "path_to_default_poster.jpg";  // Set a fallback image if poster is not available
-      console.log("Using default poster.");
-    }
-  
-    posterWrapper.appendChild(poster);
   
     const details = document.createElement("div");
     details.className = "jellyfin-details";
@@ -175,22 +153,31 @@ Module.register("MMM-Jellyfin", {
       overview.appendChild(overviewText);
       details.appendChild(overview);
   
+      // Temporarily add to DOM to measure height
       wrapper.appendChild(container);
       document.body.appendChild(wrapper);
   
+      // Calculate line height and maximum allowed height
       const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
       const maxAllowedHeight = lineHeight * 4;
   
+      // Check if the content exceeds 4 lines
       if (overviewText.scrollHeight > maxAllowedHeight) {
         overviewText.classList.add("scrollable-content");
       } else {
         overviewText.classList.remove("scrollable-content");
       }
   
+      // Remove from DOM after measurement
       document.body.removeChild(wrapper);
     }
   
+    const poster = document.createElement("img");
+    poster.className = "jellyfin-poster";
+    poster.src = item.poster || "";
     container.appendChild(details);
+    container.appendChild(poster);
+  
     wrapper.appendChild(container);
     return wrapper;
   }  
