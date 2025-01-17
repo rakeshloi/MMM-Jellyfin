@@ -1,7 +1,7 @@
 .jellyfin-wrapper {
   display: flex;
   flex-direction: row; /* Poster on the left, details on the right */
-  justify-content: flex-end;
+  justify-content: flex-start; /* Align content to the start (left) */
   align-items: flex-start;
   width: auto;
   max-width: 450px;
@@ -14,53 +14,35 @@
   background: none;
 }
 
-.jellyfin-container {
-  display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 100%; /* Ensure container fits the full width */
-  height: auto;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+.jellyfin-poster {
+  width: 120px;
+  height: 200px;
+  object-fit: cover;
+  margin-right: 10px; /* Space between poster and details */
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
-  align-items: flex-end; /* Ensure all content aligns to the right */
-  text-align: right; /* Align text content to the right */
-  width: 100%; /* Let it occupy the full available width */
-}
-
-.jellyfin-certificate {
-  width: 25px; /* Adjusted size for a smaller certificate */
-  height: auto;
-  margin: 5px 0; /* Small spacing for aesthetic alignment */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
-  border-radius: 4px;
-  align-self: flex-end; /* Ensures the certificate image is aligned to the right */
-}
-
-.jellyfin-poster {
-  width: 120px;
-  height: 200px;
-  object-fit: cover;
-  margin-right: 10px;
+  justify-content: flex-start;
+  align-items: flex-end; /* Align details to the right */
+  text-align: right;
+  width: 100%; /* Take up the remaining space */
 }
 
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 4.8em; /* Limit to 4 lines at 1.2em line height */
+  max-height: 3.6em; /* 3 lines at 1.2em each */
   overflow: hidden;
   position: relative;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .scrollable-overview p {
-  margin: 0;
-  animation: scroll-overview 25s linear 1; /* Scroll once and stop */
+  display: inline-block;
+  animation: scroll-overview 25s linear 1; /* One-time scrolling */
 }
 
 @keyframes scroll-overview {
@@ -68,6 +50,6 @@
     transform: translateY(0);
   }
   100% {
-    transform: translateY(calc(-100% + 4.8em)); /* Scroll up to fit the text */
+    transform: translateY(-100%); /* Scroll the text */
   }
 }
