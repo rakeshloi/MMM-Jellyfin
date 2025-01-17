@@ -59,15 +59,13 @@
 }
 
 .jellyfin-overview {
-  font-size: 0.6em !important; /* Smaller font size with higher specificity */
-  line-height: 1.0em; /* Adjust line height */
-  max-height: calc(1.0em * 5); /* Limit to 5 lines */
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: -webkit-box;
   -webkit-line-clamp: 5; /* Limit to 5 lines */
   -webkit-box-orient: vertical;
-  white-space: normal; /* Ensure text wraps */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5em; /* Adjust as needed */
+  max-height: calc(1.5em * 5); /* Ensure the container height matches the line count */
 }
 
 .jellyfin-poster {
