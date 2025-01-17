@@ -1,16 +1,15 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row; /* Poster on the right, details on the left */
+  flex-direction: row; /* Poster on the right, text content on the left */
   justify-content: flex-start;
   align-items: flex-start;
   width: auto;
   max-width: 450px; /* Restrict module width */
   margin-left: auto;
   margin-right: 0;
-  padding: 10px; /* Add padding for aesthetics */
+  padding: 10px;
   box-sizing: border-box;
   position: relative;
-  overflow: hidden; /* Prevent content from overflowing */
   background: none;
 }
 
@@ -27,32 +26,32 @@
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
-  text-align: left; /* Align text to the left */
-  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
+  text-align: left;
+  width: calc(100% - 130px); /* Leave space for the poster on the right */
   padding-right: 10px; /* Ensure space for poster */
 }
 
 .jellyfin-certificate {
-  width: 25px; /* Adjusted size for a smaller certificate */
+  width: 25px;
   height: auto;
-  margin: 5px 0; /* Small spacing for aesthetic alignment */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
+  margin: 5px 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   border-radius: 4px;
 }
 
 .jellyfin-poster {
   width: 120px; /* Fixed width for the poster */
-  height: 200px;
-  object-fit: cover; /* Maintain aspect ratio */
-  margin-left: 10px; /* Add spacing between the poster and details */
-  flex-shrink: 0; /* Prevent shrinking of the poster */
+  height: 200px; /* Fixed height for the poster */
+  object-fit: cover; /* Ensure poster is contained within bounds */
+  margin-left: 10px; /* Add space between poster and details */
+  flex-shrink: 0; /* Prevent the poster from shrinking */
 }
 
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 6em; /* Limit to 5 lines at 1.2em line height */
-  overflow: hidden; /* Prevent text overflow */
+  max-height: 6em; /* Ensure 5 lines at 1.2em line-height */
+  overflow: hidden;
   position: relative;
   text-align: left;
 }
