@@ -143,6 +143,35 @@ Module.register("MMM-Jellyfin", {
     title.textContent = item.title || "Untitled";
     details.appendChild(title);
   
+    // Add Premiere Date
+    if (item.premiereDate) {
+      const date = document.createElement("div");
+      date.className = "jellyfin-premiere-date";
+      const formattedDate = new Date(item.premiereDate).toLocaleDateString();
+      date.textContent = `Premiere: ${formattedDate}`;
+      details.appendChild(date);
+    }
+  
+    // Add Certificate (if available)
+    if (item.officialRating) {
+      const certificateImg = document.createElement("img");
+      certificateImg.className = "jellyfin-certificate";
+      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+      certificateImg.alt = item.officialRating;
+      details.appendChild(certificateImg);
+    }
+  
+    // Add overview text (to be handled later)
+    if (item.overview) {
+      const overview = document.createElement("div");
+      overview.className = "scrollable-overview";
+  
+      const overviewText = document.createElement("p");
+      overviewText.textContent = item.overview || "No description available.";
+      overview.appendChild(overviewText);
+      details.appendChild(overview);
+    }
+  
     // Add details and poster to the container
     container.appendChild(posterWrapper);
     container.appendChild(details);
