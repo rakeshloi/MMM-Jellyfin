@@ -123,20 +123,27 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(date);
     }
   
-    if (item.officialRating) {
-      const certificateImg = document.createElement("img");
-      certificateImg.className = "jellyfin-certificate";
-      certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
-      certificateImg.alt = item.officialRating;
-      details.appendChild(certificateImg);
-    }
+    if (item.officialRating || item.runTimeTicks) {
+      const certRuntimeContainer = document.createElement("div");
+      certRuntimeContainer.className = "jellyfin-cert-runtime";
   
-    if (item.runTimeTicks) {
-      const runtime = document.createElement("div");
-      runtime.className = "jellyfin-runtime";
-      const runtimeMinutes = Math.floor(item.runTimeTicks / 600000000); // Convert ticks to minutes
-      runtime.textContent = `${runtimeMinutes} min`;
-      details.appendChild(runtime);
+      if (item.officialRating) {
+        const certificateImg = document.createElement("img");
+        certificateImg.className = "jellyfin-certificate";
+        certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
+        certificateImg.alt = item.officialRating;
+        certRuntimeContainer.appendChild(certificateImg);
+      }
+  
+      if (item.runTimeTicks) {
+        const runtime = document.createElement("div");
+        runtime.className = "jellyfin-runtime";
+        const runtimeMinutes = Math.floor(item.runTimeTicks / 600000000); // Convert ticks to minutes
+        runtime.textContent = `${runtimeMinutes} min`;
+        certRuntimeContainer.appendChild(runtime);
+      }
+  
+      details.appendChild(certRuntimeContainer);
     }
   
     if (item.overview) {
