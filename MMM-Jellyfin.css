@@ -30,8 +30,8 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start; /* Align text to the left */
-  text-align: left; /* Align text content to the left */
+  align-items: flex-start;
+  text-align: left;
   width: calc(100% - 130px); /* Adjust width for the poster */
 }
 
@@ -47,7 +47,7 @@
   width: 120px;
   height: 200px;
   object-fit: cover;
-  margin-left: 10px; /* Adjust margin to create space between text and poster */
+  margin-left: 10px;
 }
 
 .scrollable-overview {
