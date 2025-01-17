@@ -27,8 +27,8 @@
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  width: calc(100% - 130px); /* Leave space for the poster on the right */
-  padding-right: 10px; /* Ensure space for poster */
+  width: calc(100% - 130px); /* Adjust width for the poster space */
+  padding-right: 10px; /* Space for poster */
 }
 
 .jellyfin-certificate {
@@ -40,17 +40,19 @@
 }
 
 .jellyfin-poster {
-  width: 120px; /* Fixed width for the poster */
-  height: 200px; /* Fixed height for the poster */
-  object-fit: cover; /* Ensure poster is contained within bounds */
-  margin-left: 10px; /* Add space between poster and details */
-  flex-shrink: 0; /* Prevent the poster from shrinking */
+  width: 120px; /* Fixed width for poster */
+  height: 200px; /* Fixed height for poster */
+  object-fit: cover; /* Contain image properly */
+  margin-left: 10px; /* Ensure space between poster and text */
+  flex-shrink: 0; /* Prevent poster from shrinking */
+  max-width: 120px; /* Ensure poster doesn't grow beyond desired size */
+  max-height: 200px; /* Ensure poster doesn't exceed height */
 }
 
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 6em; /* Ensure 5 lines at 1.2em line-height */
+  max-height: 6em; /* Max height for 5 lines of text */
   overflow: hidden;
   position: relative;
   text-align: left;
