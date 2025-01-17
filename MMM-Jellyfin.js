@@ -6,11 +6,11 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000, // Fetch new data every minute
-    rotateInterval: 30 * 1000, // Rotate items every 30 seconds
-    nowPlayingCheckInterval: 15 * 1000, // Check "Now Playing" every 15 seconds
-    retryInterval: 5 * 60 * 1000, // Retry every 5 minutes if Jellyfin is offline
-    title: "Jellyfin", // Default module title
+    updateInterval: 1 * 60 * 1000,
+    rotateInterval: 30 * 1000,
+    nowPlayingCheckInterval: 15 * 1000,
+    retryInterval: 5 * 60 * 1000,
+    title: "Jellyfin",
   },
 
   getStyles() {
@@ -18,14 +18,16 @@ Module.register("MMM-Jellyfin", {
   },
 
   start() {
-    console.log("[MMM-Jellyfin] Starting module...");
     this.items = [];
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
 
     this.getData();
+    this.setupIntervals();
+  },
 
+  setupIntervals() {
     setInterval(() => {
       if (!this.nowPlaying) {
         this.getData();
@@ -35,7 +37,7 @@ Module.register("MMM-Jellyfin", {
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
-        this.updateDom({ force: false });
+        this.updatePartialDom(false);
       }
     }, this.config.rotateInterval);
 
@@ -67,39 +69,55 @@ Module.register("MMM-Jellyfin", {
   socketNotificationReceived(notification, payload) {
     if (notification === "JELLYFIN_DATA") {
       this.offline = false;
-      this.show(1000, { lockString: "jellyfin-offline" });
 
       if (payload.type === "nowPlaying") {
         if (payload.data) {
-          this.nowPlaying = payload.data;
-          this.items = [];
-          this.updateHeader(`${this.config.title}: Now Playing`);
+          if (JSON.stringify(this.nowPlaying) !== JSON.stringify(payload.data)) {
+            this.nowPlaying = payload.data;
+            this.updatePartialDom(true);
+          }
         } else {
           this.nowPlaying = null;
-          this.updateHeader(`${this.config.title}: Recently Added`);
+          this.updatePartialDom(false);
         }
       } else if (payload.type === "recentlyAdded") {
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
           this.currentIndex = 0;
+          this.updatePartialDom(false);
         }
-        this.nowPlaying = null;
-        this.updateHeader(`${this.config.title}: Recently Added`);
       }
-      this.updateDom({ force: false });
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
-      this.updateHeader("");
       this.hide(1000, { lockString: "jellyfin-offline" });
     }
   },
 
-  updateHeader(text) {
-    this.data.header = text;
-    this.updateDom({ force: false });
+  updatePartialDom(isNowPlaying = false) {
+    if (isNowPlaying) {
+      const progressBar = document.querySelector(".jellyfin-progress-fill");
+      const timeLabel = document.querySelector(".jellyfin-time-label");
+      if (progressBar && timeLabel && this.nowPlaying) {
+        const progressPct =
+          (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100;
+        progressBar.style.width = `${progressPct}%`;
+        progressBar.style.background = this.nowPlaying.isPaused ? "#f00" : "#0f0";
+
+        const timeRemaining =
+          Math.max(
+            0,
+            this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks
+          ) / 10000000;
+        timeLabel.textContent = `${Math.floor(timeRemaining / 60)}m ${
+          Math.floor(timeRemaining % 60)
+        }s remaining`;
+      }
+    } else {
+      this.updateDom();
+    }
   },
 
-  getDom: function () {
+  getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
 
@@ -154,10 +172,10 @@ Module.register("MMM-Jellyfin", {
       overview.appendChild(overviewText);
       details.appendChild(overview);
 
-      const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
-      const maxAllowedHeight = lineHeight * 4;
+      const lineHeight = 1.2 * parseFloat(getComputedStyle(overviewText).fontSize);
+      const maxHeight = lineHeight * 4;
 
-      if (overviewText.scrollHeight > maxAllowedHeight) {
+      if (overviewText.scrollHeight > maxHeight) {
         overviewText.classList.add("scrollable-content");
       } else {
         overviewText.classList.remove("scrollable-content");
@@ -168,37 +186,25 @@ Module.register("MMM-Jellyfin", {
       const progressContainer = document.createElement("div");
       progressContainer.className = "jellyfin-progress-container";
 
-      const progressPct =
-        (this.nowPlaying.positionTicks / this.nowPlaying.runTimeTicks) * 100 || 0;
-
       const progressBar = document.createElement("div");
       progressBar.className = "jellyfin-progress-bar";
 
       const progressFill = document.createElement("div");
       progressFill.className = "jellyfin-progress-fill";
-      progressFill.style.width = `${progressPct}%`;
-      progressFill.style.backgroundColor = this.nowPlaying.isPaused ? "#f00" : "#0f0";
 
       progressBar.appendChild(progressFill);
-
-      const timeRemaining =
-        Math.max(0, this.nowPlaying.runTimeTicks - this.nowPlaying.positionTicks) /
-        10000000;
-      const timeRemainingText = `${Math.floor(timeRemaining / 60)}m ${
-        Math.floor(timeRemaining % 60)
-      }s remaining`;
+      progressContainer.appendChild(progressBar);
 
       const timeLabel = document.createElement("div");
       timeLabel.className = "jellyfin-time-label";
-      timeLabel.textContent = timeRemainingText;
-
-      progressContainer.appendChild(progressBar);
       progressContainer.appendChild(timeLabel);
+
       details.appendChild(progressContainer);
     }
 
     container.appendChild(details);
     wrapper.appendChild(container);
+
     return wrapper;
   },
 });
