@@ -1,12 +1,12 @@
 .jellyfin-wrapper {
   display: flex;
-  flex-direction: row-reverse; /* Poster on the right, details on the left */
-  justify-content: space-between; /* Space between text and poster */
-  align-items: flex-start; /* Align content to the top */
+  flex-direction: row-reverse; /* Ensure the poster is on the right */
+  justify-content: space-between; /* Separate the text and poster */
+  align-items: flex-start; /* Align items to the top */
   width: auto;
   max-width: 450px; /* Restrict module width */
-  margin: 0 auto; /* Center the module within its container */
-  padding: 10px; /* Add padding for aesthetics */
+  margin: 0 auto; /* Center the module */
+  padding: 10px; /* Add spacing for aesthetics */
   box-sizing: border-box;
   position: relative;
   overflow: hidden; /* Prevent overflow */
@@ -15,65 +15,38 @@
 
 .jellyfin-container {
   display: flex;
-  flex-direction: row-reverse; /* Place the poster on the right */
-  align-items: flex-start;
-  justify-content: space-between;
-  width: 100%; /* Occupy full width of the module */
+  flex-direction: row-reverse; /* Poster stays on the right */
+  align-items: flex-start; /* Align all content to the top */
+  justify-content: space-between; /* Ensure even spacing between poster and text */
+  width: 100%;
+  height: auto;
 }
 
 .jellyfin-details {
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: flex-start; /* Align text content to the left */
-  text-align: left;
-  width: calc(100% - 140px); /* Leave room for the poster */
-  padding-right: 10px; /* Add space between text and poster */
+  align-items: flex-start; /* Align text to the left */
+  text-align: left; /* Align text content */
+  width: calc(100% - 140px); /* Dedicate space for the poster */
+  padding-right: 10px; /* Add spacing between text and poster */
   box-sizing: border-box;
 }
 
 .jellyfin-certificate {
-  width: 25px; /* Size for certificate image */
+  width: 25px; /* Size for the certificate image */
   height: auto;
   margin: 5px 0;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional styling for a polished look */
   border-radius: 4px;
 }
 
 .jellyfin-poster {
-  width: 120px; /* Constrain the poster width */
-  height: 200px; /* Constrain the poster height */
-  object-fit: cover; /* Maintain aspect ratio while filling the space */
-  flex-shrink: 0; /* Prevent shrinking */
-  margin-left: 10px; /* Add space between poster and text */
-  border-radius: 4px; /* Optional: Rounded corners for aesthetics */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional shadow */
-  overflow: hidden; /* Prevent the poster from overflowing */
-}
-
-.scrollable-overview {
-  font-size: 0.75em;
-  line-height: 1.2em;
-  max-height: 6em; /* Limit to 5 lines of text */
-  overflow: hidden;
-  position: relative;
-  text-align: left;
-}
-
-.scrollable-overview p {
-  display: inline-block;
-  white-space: normal; /* Allow text wrapping */
-  max-height: 6em; /* Enforce the 5-line limit */
-  line-height: 1.2em; /* Consistent line height */
-  overflow: hidden;
-  animation: scroll-overview 25s linear forwards; /* Smooth scrolling animation */
-}
-
-@keyframes scroll-overview {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-100%);
-  }
+  width: 120px; /* Restrict the poster width */
+  height: 200px; /* Restrict the poster height */
+  object-fit: cover; /* Maintain aspect ratio */
+  margin-left: 10px; /* Add spacing between poster and text */
+  flex-shrink: 0; /* Prevent the poster from shrinking */
+  border-radius: 4px; /* Rounded corners for a polished look */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional shadow for aesthetics */
 }
