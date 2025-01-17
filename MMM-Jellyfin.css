@@ -64,7 +64,7 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.5em; /* Set a fixed line height */
+  line-height: 1.2em; /* Set a fixed line height */
   max-height: calc(1.5em * 5); /* Ensure the container height can hold 5 lines */
   box-sizing: border-box; /* Handle padding properly */
 }
