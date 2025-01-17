@@ -102,39 +102,37 @@ Module.register("MMM-Jellyfin", {
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
-
+  
     if (this.offline) {
       return wrapper;
     }
-
+  
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
       wrapper.innerHTML = "";
       return wrapper;
     }
-
+  
     const container = document.createElement("div");
     container.className = "jellyfin-container";
-
+  
     const posterWrapper = document.createElement("div");
     posterWrapper.style.marginRight = "10px";
-
+  
     const poster = document.createElement("img");
     poster.src = item.poster || "";
-    poster.style.width = "120px";
-    poster.style.height = "200px";
-    poster.style.objectFit = "cover";
+    poster.className = "jellyfin-poster";
     posterWrapper.appendChild(poster);
-
+  
     const details = document.createElement("div");
     details.className = "jellyfin-details";
-
+  
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
     title.style.fontSize = "0.9em";
     title.style.margin = "0 0 4px 0";
     details.appendChild(title);
-
+  
     if (item.premiereDate) {
       const date = document.createElement("div");
       const formattedDate = new Date(item.premiereDate).toLocaleDateString();
@@ -144,7 +142,7 @@ Module.register("MMM-Jellyfin", {
       date.style.marginBottom = "4px";
       details.appendChild(date);
     }
-
+  
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
@@ -152,7 +150,7 @@ Module.register("MMM-Jellyfin", {
       certificateImg.className = "jellyfin-certificate";
       details.appendChild(certificateImg);
     }
-
+  
     if (item.overview) {
       const overviewContainer = document.createElement("div");
       overviewContainer.className = "scrollable-overview";
@@ -161,11 +159,11 @@ Module.register("MMM-Jellyfin", {
       overviewContainer.appendChild(overview);
       details.appendChild(overviewContainer);
     }
-
+  
     container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
-
+  
     return wrapper;
-  },
+  },  
 });
