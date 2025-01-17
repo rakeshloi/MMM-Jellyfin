@@ -107,20 +107,24 @@ Module.register("MMM-Jellyfin", {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
   
+    // If the module is offline, display a message and return
     if (this.offline) {
       wrapper.innerHTML = "Jellyfin is offline...";
       return wrapper;
     }
   
+    // Get the currently playing item or the current index's item
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
       wrapper.innerHTML = "Loading Jellyfin data...";
       return wrapper;
     }
   
+    // Create the main container for the module
     const container = document.createElement("div");
     container.className = "jellyfin-container";
   
+    // Create poster wrapper and append the poster
     const posterWrapper = document.createElement("div");
     posterWrapper.style.display = "flex";
     posterWrapper.style.alignItems = "center";
@@ -131,14 +135,17 @@ Module.register("MMM-Jellyfin", {
     poster.src = item.poster || "";
     posterWrapper.appendChild(poster);
   
+    // Create details container for text
     const details = document.createElement("div");
     details.className = "jellyfin-details";
   
+    // Create and append the title
     const title = document.createElement("div");
     title.className = "jellyfin-title";
     title.textContent = item.title || "Untitled";
     details.appendChild(title);
   
+    // Create and append premiere date
     if (item.premiereDate) {
       const date = document.createElement("div");
       date.className = "jellyfin-premiere-date";
@@ -147,6 +154,7 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(date);
     }
   
+    // Create and append certificate image
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.className = "jellyfin-certificate";
@@ -155,6 +163,7 @@ Module.register("MMM-Jellyfin", {
       details.appendChild(certificateImg);
     }
   
+    // Create and append the overview, which will be scrollable
     if (item.overview) {
       const overview = document.createElement("div");
       overview.className = "scrollable-overview";
@@ -172,7 +181,7 @@ Module.register("MMM-Jellyfin", {
       const lineHeight = parseFloat(getComputedStyle(overviewText).lineHeight);
       const maxAllowedHeight = lineHeight * 4;
   
-      // Check if the content exceeds 4 lines
+      // Check if the content exceeds 4 lines and apply scrolling if necessary
       if (overviewText.scrollHeight > maxAllowedHeight) {
         overviewText.classList.add("scrollable-content");
       } else {
@@ -183,6 +192,7 @@ Module.register("MMM-Jellyfin", {
       document.body.removeChild(wrapper);
     }
   
+    // Append details to container and container to wrapper
     container.appendChild(details);
     wrapper.appendChild(container);
     return wrapper;
