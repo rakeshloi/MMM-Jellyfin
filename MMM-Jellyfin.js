@@ -6,10 +6,10 @@ Module.register("MMM-Jellyfin", {
     parentId: "",
     contentType: "Movie",
     maxItems: 15,
-    updateInterval: 1 * 60 * 1000,
-    rotateInterval: 30 * 1000,
-    nowPlayingCheckInterval: 15 * 1000,
-    retryInterval: 5 * 60 * 1000,
+    updateInterval: 1 * 60 * 1000, // 1 minute
+    rotateInterval: 30 * 1000, // 30 seconds
+    nowPlayingCheckInterval: 15 * 1000, // 15 seconds
+    retryInterval: 5 * 60 * 1000, // 5 minutes
     title: "Jellyfin",
   },
 
@@ -102,37 +102,37 @@ Module.register("MMM-Jellyfin", {
   getDom() {
     const wrapper = document.createElement("div");
     wrapper.className = "jellyfin-wrapper";
-  
+
     if (this.offline) {
       return wrapper;
     }
-  
+
     const item = this.nowPlaying || this.items[this.currentIndex];
     if (!item) {
       wrapper.innerHTML = "";
       return wrapper;
     }
-  
+
     const container = document.createElement("div");
     container.className = "jellyfin-container";
-  
+
     const posterWrapper = document.createElement("div");
     posterWrapper.style.marginRight = "10px";
-  
+
     const poster = document.createElement("img");
     poster.src = item.poster || "";
     poster.className = "jellyfin-poster";
     posterWrapper.appendChild(poster);
-  
+
     const details = document.createElement("div");
     details.className = "jellyfin-details";
-  
+
     const title = document.createElement("h2");
     title.textContent = item.title || "Untitled";
     title.style.fontSize = "0.9em";
     title.style.margin = "0 0 4px 0";
     details.appendChild(title);
-  
+
     if (item.premiereDate) {
       const date = document.createElement("div");
       const formattedDate = new Date(item.premiereDate).toLocaleDateString();
@@ -142,7 +142,7 @@ Module.register("MMM-Jellyfin", {
       date.style.marginBottom = "4px";
       details.appendChild(date);
     }
-  
+
     if (item.officialRating) {
       const certificateImg = document.createElement("img");
       certificateImg.src = `modules/MMM-Jellyfin/certificates/${item.officialRating}.png`;
@@ -150,20 +150,29 @@ Module.register("MMM-Jellyfin", {
       certificateImg.className = "jellyfin-certificate";
       details.appendChild(certificateImg);
     }
-  
+
     if (item.overview) {
-      const overviewContainer = document.createElement("div");
-      overviewContainer.className = "scrollable-overview";
+      const overviewWrapper = document.createElement("div");
+      overviewWrapper.className = "scrollable-overview";
+
       const overview = document.createElement("p");
-      overview.textContent = item.overview || "No description available.";
-      overviewContainer.appendChild(overview);
-      details.appendChild(overviewContainer);
+      overview.textContent = item.overview;
+
+      overviewWrapper.appendChild(overview);
+      details.appendChild(overviewWrapper);
+
+      // Check if the overview text exceeds the container height
+      setTimeout(() => {
+        if (overview.scrollHeight > overviewWrapper.clientHeight) {
+          overview.classList.add("animate-overview");
+        }
+      }, 0);
     }
-  
+
     container.appendChild(posterWrapper);
     container.appendChild(details);
     wrapper.appendChild(container);
-  
+
     return wrapper;
-  },  
+  },
 });

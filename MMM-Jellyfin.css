@@ -53,30 +53,21 @@
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-width: 300px; /* Prevent it from spanning full width */
-  max-height: 3.6em; /* Limit to 3 lines */
+  max-height: 4.8em; /* Limit to 4 lines at 1.2em line height */
   overflow: hidden;
   position: relative;
-  white-space: nowrap;
 }
 
 .scrollable-overview p {
-  display: inline-block;
-  white-space: nowrap;
-  animation: scroll-overview 25s linear infinite;
+  margin: 0;
+  animation: scroll-overview 25s linear 1; /* Scroll once and stop */
 }
 
 @keyframes scroll-overview {
   0% {
-    transform: translateX(0);
-  }
-  10% {
-    transform: translateX(0); /* Pause briefly */
-  }
-  90% {
-    transform: translateX(-100%); /* Scroll the text */
+    transform: translateY(0);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateY(calc(-100% + 4.8em)); /* Scroll up to fit the text */
   }
 }
