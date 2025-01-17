@@ -103,10 +103,18 @@ module.exports = NodeHelper.create({
       console.log("[MMM-Jellyfin] Fetching now playing data...");
       const { serverUrl, apiKey, userId } = payload;
       this.fetchNowPlaying(serverUrl, apiKey, userId).then((nowPlayingItem) => {
-        this.sendSocketNotification("JELLYFIN_DATA", {
-          type: "nowPlaying",
-          data: nowPlayingItem,
-        });
+        if (nowPlayingItem) {
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "nowPlaying",
+            data: nowPlayingItem,
+          });
+        } else {
+          // If nothing is playing, clear the "Now Playing" data
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "nowPlaying",
+            data: null,
+          });
+        }
       });
     }
   },
