@@ -54,33 +54,31 @@
 .scrollable-overview {
   font-size: 0.75em;
   line-height: 1.2em;
-  max-height: 4.8em; /* 4 lines at 1.2em line height */
+  max-height: 4.8em; /* Limit height to 4 lines */
   overflow: hidden; /* Prevent text overflow */
   position: relative;
   text-align: right; /* Align text to the right */
-  white-space: normal; /* Allow wrapping within the container */
 }
 
 .scrollable-overview p {
-  display: block;
-  white-space: nowrap; /* Prevent text wrapping */
-  overflow: hidden; /* Hide overflowing content */
-  text-overflow: ellipsis; /* Add ellipsis for long text */
-  position: absolute; /* Keep the text stationary within the container */
-  animation: scroll-overview 25s linear forwards; /* Smooth scrolling, no looping */
+  display: inline-block;
+  white-space: nowrap; /* Ensure text scrolls horizontally */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  animation: scroll-overview 25s linear forwards; /* Smooth scrolling effect */
 }
 
 @keyframes scroll-overview {
   0% {
-    transform: translateX(100%);
+    transform: translateX(100%); /* Start outside the container */
   }
   10% {
-    transform: translateX(100%); /* Pause briefly */
+    transform: translateX(100%); /* Pause briefly at the start */
   }
   90% {
-    transform: translateX(-100%); /* Scroll the text horizontally */
+    transform: translateX(-100%); /* Scroll to the left */
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-100%); /* End at the left */
   }
 }
