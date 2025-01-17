@@ -1,7 +1,7 @@
 .jellyfin-wrapper {
   display: flex;
   flex-direction: row; /* Poster on the left, details on the right */
-  justify-content: flex-start;
+  justify-content: flex-start; /* Align content to the left */
   align-items: flex-start;
   width: auto;
   max-width: 450px; /* Restrict module width */
@@ -58,8 +58,29 @@
   overflow: hidden; /* Prevent text overflow */
   position: relative;
   text-align: right; /* Align text to the right */
-  white-space: nowrap; /* Prevent wrapping */
+  white-space: normal; /* Allow wrapping within the container */
 }
 
 .scrollable-overview p {
-  display: inline-bloc
+  display: block;
+  white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Hide overflowing content */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  position: absolute; /* Keep the text stationary within the container */
+  animation: scroll-overview 25s linear forwards; /* Smooth scrolling, no looping */
+}
+
+@keyframes scroll-overview {
+  0% {
+    transform: translateX(100%);
+  }
+  10% {
+    transform: translateX(100%); /* Pause briefly */
+  }
+  90% {
+    transform: translateX(-100%); /* Scroll the text horizontally */
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
