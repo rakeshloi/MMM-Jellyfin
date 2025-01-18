@@ -17,7 +17,7 @@ module.exports = NodeHelper.create({
       );
 
       if (!nowPlayingSession || !nowPlayingSession.NowPlayingItem) {
-        return null;
+        return null; // Return null when no data is found
       }
 
       const item = nowPlayingSession.NowPlayingItem;
@@ -40,7 +40,7 @@ module.exports = NodeHelper.create({
       };
     } catch (error) {
       console.error("[MMM-Jellyfin] Error fetching now playing data:", error);
-      return null;
+      return null; // Return null on error if Jellyfin is unreachable
     }
   },
 
@@ -64,6 +64,10 @@ module.exports = NodeHelper.create({
         }
       );
   
+      if (!response.data || response.data.length === 0) {
+        return []; // Return an empty array if no data
+      }
+  
       return response.data.map((item) => {
         const posterUrl =
           item.ImageTags && item.ImageTags.Primary
@@ -82,7 +86,7 @@ module.exports = NodeHelper.create({
       });
     } catch (error) {
       console.error("[MMM-Jellyfin] Error fetching recently added data:", error);
-      return [];
+      return []; // Return empty array if there's an error
     }
   }, 
 
@@ -90,19 +94,35 @@ module.exports = NodeHelper.create({
     if (notification === "FETCH_JELLYFIN_DATA") {
       console.log("[MMM-Jellyfin] Fetching recently added data...");
       this.fetchRecentlyAdded(payload).then((items) => {
-        this.sendSocketNotification("JELLYFIN_DATA", {
-          type: "recentlyAdded",
-          data: items,
-        });
+        if (items.length === 0) {
+          // If no items are fetched, indicate Jellyfin is down
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "recentlyAdded",
+            data: null,  // Send null to indicate no data
+          });
+        } else {
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "recentlyAdded",
+            data: items,
+          });
+        }
       });
     } else if (notification === "FETCH_NOW_PLAYING_DETAILS") {
       console.log("[MMM-Jellyfin] Fetching now playing data...");
       const { serverUrl, apiKey, userId } = payload;
       this.fetchNowPlaying(serverUrl, apiKey, userId).then((nowPlayingItem) => {
-        this.sendSocketNotification("JELLYFIN_DATA", {
-          type: "nowPlaying",
-          data: nowPlayingItem,
-        });
+        if (nowPlayingItem === null) {
+          // If no Now Playing data is returned, send null to indicate Jellyfin is down
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "nowPlaying",
+            data: null,
+          });
+        } else {
+          this.sendSocketNotification("JELLYFIN_DATA", {
+            type: "nowPlaying",
+            data: nowPlayingItem,
+          });
+        }
       });
     }
   },
