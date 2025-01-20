@@ -13,6 +13,32 @@ Module.register("MMM-Jellyfin", {
     title: "Jellyfin",
   },
 
+  notificationReceived(notification, payload) {
+    if (notification === "MODULE_RESUMED") {
+      console.log("MMM-Jellyfin is resumed.");
+
+      // If resuming the module, you might want to:
+      // - Avoid unnecessary data re-fetching
+      // - Prevent resetting ongoing animations
+      // - Trigger any required actions (like updating the DOM)
+
+      // For example, avoid re-fetching data if it's already up-to-date
+      if (!this.shouldUpdate) {
+        console.log("No update needed on resume.");
+        return; // Skip unnecessary actions when the module is resumed
+      }
+
+      // Add your custom logic for resuming the module, like refreshing content if needed
+      this.getData(); // Re-fetch data if necessary (e.g., after a long break)
+    }
+
+    // Other notifications like MODULE_PAUSED, etc. can be handled similarly
+    if (notification === "MODULE_PAUSED") {
+      console.log("MMM-Jellyfin is paused.");
+      // Handle module pause state (e.g., stop animations, pause data fetching)
+    }
+  },
+
   getStyles() {
     return ["MMM-Jellyfin.css"];
   },
@@ -23,7 +49,8 @@ Module.register("MMM-Jellyfin", {
     this.nowPlaying = null;
     this.currentIndex = 0;
     this.offline = false;
-    this.lastPositionTicks = 0; // Initialize lastPositionTicks to track playback state
+    this.lastPositionTicks = 0;
+    this.shouldUpdate = false; // Add this flag
 
     this.getData();
 
@@ -34,6 +61,7 @@ Module.register("MMM-Jellyfin", {
     setInterval(() => {
       if (!this.offline && !this.nowPlaying && this.items.length > 1) {
         this.currentIndex = (this.currentIndex + 1) % this.items.length;
+        this.shouldUpdate = true;  // Only update when necessary
         this.updateDom();
       }
     }, this.config.rotateInterval);
@@ -57,31 +85,68 @@ Module.register("MMM-Jellyfin", {
       apiKey: this.config.apiKey,
       userId: this.config.userId,
     });
+
+    // API call to check the latest activity log entry for playback stopped
+    const activityLogUrl = `${this.config.serverUrl}/System/ActivityLog/Entries`;
+
+    fetch(`${activityLogUrl}?api_key=${this.config.apiKey}&limit=1`)
+      .then(response => response.json())
+      .then(activityData => {
+        if (activityData.Items && activityData.Items.length > 0) {
+          const latestEntry = activityData.Items[0];
+
+          // Check if the latest entry indicates playback has stopped
+          if (latestEntry.Type === "AudioPlaybackStopped" || latestEntry.Type === "VideoPlaybackStopped") {
+            console.log("[MMM-Jellyfin] Playback stopped.");
+
+            // Clear nowPlaying to stop showing the currently playing content
+            this.nowPlaying = null;
+
+            // Set flag to false, indicating no media is playing
+            this.isPlaying = false;
+
+            // Switch to Recently Added state by fetching data
+            this.getData(); // Trigger fetching of Recently Added content
+          }
+        }
+      })
+      .catch(error => {
+        console.error("[MMM-Jellyfin] Error fetching activity log:", error);
+      });
   },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "JELLYFIN_DATA") {
       this.offline = false;
-      this.show(1000, { lockString: "jellyfin-offline" });
+      //this.show(1000, { lockString: "jellyfin-offline" }, () => { });
 
+      // Check if nowPlaying data has changed
       if (payload.type === "nowPlaying") {
         if (payload.data) {
-          this.nowPlaying = payload.data;
-          this.items = [];
-          this.updateHeader(`${this.config.title}: Now Playing`);
+          // Only update the header if it changes from recently added to now playing
+          if (this.nowPlaying !== payload.data) {
+            this.nowPlaying = payload.data;
+            this.items = [];  // Clear items when switching to now playing
+            this.updateHeader(`${this.config.title}: Now Playing`);
+          }
         } else {
           this.nowPlaying = null;
           this.updateHeader(""); // Clear the header if no Now Playing data
         }
-      } else if (payload.type === "recentlyAdded") {
+      }
+      // Handle Recently Added
+      else if (payload.type === "recentlyAdded") {
+        // Only update header if Recently Added data changes
         if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
           this.items = payload.data || [];
           this.currentIndex = 0;
+          this.nowPlaying = null;
+          this.updateHeader(""); // Clear the header for recently added
         }
-        this.nowPlaying = null;
-        this.updateHeader("");  // Clear the header if no Recently Added data
       }
-      this.updateDom();
+
+      // Only update the DOM if there's a meaningful change
+      this.updateDom();  // Only update content if necessary
     } else if (notification === "JELLYFIN_OFFLINE") {
       this.offline = true;
       this.updateHeader("");  // Ensure the header is cleared when offline
@@ -90,8 +155,8 @@ Module.register("MMM-Jellyfin", {
   },
 
   updateHeader(text) {
-    //this.data.header = text;  // Set the header to the appropriate text (or empty if offline)
-    //this.updateDom();
+    this.data.header = text;  // Set the header to the appropriate text (or empty if offline)
+    this.updateDom();
   },
 
   renderContent(data, mediaType, item) {
@@ -105,10 +170,10 @@ Module.register("MMM-Jellyfin", {
     const details = document.createElement("div");
     details.className = "jellyfin-details";
 
-    // For Video, use OriginalTitle, for Audio use Name
+    // For Video, use Name, for Audio use Name
     const title = document.createElement("div");
     title.className = "jellyfin-title";
-    title.textContent = mediaType === "Video" ? (data.OriginalTitle || "Untitled") : (data.Name || "Untitled");  // Display Name for Audio
+    title.textContent = mediaType === "Video" ? (data.Name || "Untitled") : (data.Name || "Untitled");
     details.appendChild(title);
 
     // For Audio, display Album and AlbumArtist
@@ -272,40 +337,25 @@ Module.register("MMM-Jellyfin", {
     wrapper.className = "jellyfin-wrapper";
 
     if (this.offline) {
-      wrapper.innerHTML = "";  // Clear the content
+      wrapper.innerHTML = "";  // Clear the content if offline
       return wrapper;
     }
 
-    // Handle Music Content Type (Recently Added Music)
-    if (this.config.contentType === "Music") {
-      const recentlyAddedUrl = `http://192.168.1.96:8096/Items?userId=${this.config.userId}&api_key=${this.config.apiKey}&topParentId=7e64e319657a9516ec78490da03edccb&collectionType=music&tab=1`;
-
-      fetch(recentlyAddedUrl)
-        .then(response => response.json())
-        .then(data => {
-          this.items = data.Items || [];
-          this.updateDom();
-        })
-        .catch(error => console.error("Error fetching recently added music:", error));
-
-      wrapper.innerHTML = "";  // Clear content while fetching new data
-      return wrapper;
-    }
-
+    // If nowPlaying has valid data, show it
     const item = this.nowPlaying || this.items[this.currentIndex];
+
     if (!item) {
-      wrapper.innerHTML = "";
+      wrapper.innerHTML = "";  // If there is no item to display, clear content
       return wrapper;
     }
 
     const itemId = item.id;
-    const url = `http://192.168.1.96:8096/Items/${itemId}?userId=${this.config.userId}&api_key=${this.config.apiKey}&limit=1&contentType=${this.config.contentType}`;
+    const url = `${this.config.serverUrl}/Items/${itemId}?userId=${this.config.userId}&api_key=${this.config.apiKey}`;
 
     fetch(url)
       .then(response => response.json())
       .then(data => {
         const mediaType = data.MediaSources[0].MediaStreams[0].Type;
-
         const content = this.renderContent(data, mediaType, item);
         wrapper.appendChild(content);
       })

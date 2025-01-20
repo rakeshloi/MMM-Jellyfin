@@ -63,17 +63,17 @@ module.exports = NodeHelper.create({
           },
         }
       );
-  
+
       if (!response.data || response.data.length === 0) {
         return []; // Return an empty array if no data
       }
-  
+
       return response.data.map((item) => {
         const posterUrl =
           item.ImageTags && item.ImageTags.Primary
             ? `${config.serverUrl}/Items/${item.Id}/Images/Primary?api_key=${config.apiKey}`
             : null;
-  
+
         return {
           id: item.Id,
           title: item.Name || "Untitled",
@@ -88,7 +88,7 @@ module.exports = NodeHelper.create({
       console.error("[MMM-Jellyfin] Error fetching recently added data:", error);
       return []; // Return empty array if there's an error
     }
-  }, 
+  },
 
   socketNotificationReceived(notification, payload) {
     if (notification === "FETCH_JELLYFIN_DATA") {

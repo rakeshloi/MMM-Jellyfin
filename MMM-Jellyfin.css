@@ -3,7 +3,7 @@
   flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  max-width: 450px; /* Restrict module width */
+  max-width: 450px;
   padding: 10px;
   box-sizing: border-box;
   background: none;
@@ -24,7 +24,7 @@
   justify-content: flex-start;
   align-items: flex-start;
   text-align: left;
-  width: calc(100% - 130px); /* Adjust width to leave space for the poster */
+  width: calc(100% - 130px);
 }
 
 .jellyfin-title {
@@ -43,7 +43,7 @@
 }
 
 .jellyfin-certificate {
-  width: 25px; /* Adjust size for a smaller certificate */
+  width: 25px;
   height: auto;
 }
 
@@ -61,45 +61,46 @@
 
 .jellyfin-overview {
   display: -webkit-box;
-  -webkit-line-clamp: 4; /* Limit to 4 lines */
-  line-clamp: 4; /* Limit to 4 lines */
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.5em; /* Set a fixed line height */
-  max-height: calc(1.5em * 4); /* Ensure the container height can hold 4 lines */
-  box-sizing: border-box; /* Handle padding properly */
+  line-height: 1.5em;
+  max-height: calc(1.5em * 4);
+  box-sizing: border-box;
 }
 
 .jellyfin-overview-scroll {
   position: relative;
   overflow: hidden;
-  max-height: calc(1.5em * 4); /* Set the max height to 4 lines */
+  max-height: calc(1.5em * 4);
   display: block;
 }
 
 .jellyfin-overview-text {
   display: block;
-  animation: scroll-overview 25s linear infinite; /* 25s for scroll duration */
+  animation: scroll-overview 10s linear 1;
+  will-change: transform;
+  transform-origin: top left;
 }
 
 @keyframes scroll-overview {
   0% {
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
+
   100% {
-    transform: translateY(-100%);
+    transform: translate3d(0, -100%, 0);
   }
 }
 
 .jellyfin-poster {
   width: 120px;
   height: 200px;
-  object-fit: cover; /* Maintain aspect ratio */
+  object-fit: cover;
   margin-left: 10px;
 }
 
-/* Progress Bar Styles */
 .jellyfin-progress-bar-container {
   width: 100%;
   height: 5px;
@@ -113,7 +114,6 @@
   border-radius: 2px;
 }
 
-/* Remaining Time Styles */
 .jellyfin-remaining-time {
   font-size: 0.8em;
   color: #ccc;
