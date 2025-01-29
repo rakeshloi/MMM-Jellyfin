@@ -1,371 +1,750 @@
-Module.register("MMM-Jellyfin", {
-  defaults: {
-    apiKey: "",
-    serverUrl: "",
-    userId: "",
-    parentId: "",
-    contentType: "Movie",  // Now configurable through the config
-    maxItems: 15,
-    updateInterval: 1 * 60 * 1000,
-    rotateInterval: 30 * 1000,
-    nowPlayingCheckInterval: 15 * 1000,
-    retryInterval: 5 * 60 * 1000,
-    title: "Jellyfin",
-  },
+let serverUrl, apiKey, userId; // Declare variables to be set dynamically
 
-  notificationReceived(notification, payload) {
-    if (notification === "MODULE_RESUMED") {
-      console.log("MMM-Jellyfin is resumed.");
+let checkInterval = 60000; // Default 60 seconds
+let activityCheckInterval = 10000; // Default 10 seconds for activity log check
+let sessionCheckInterval = 10000; // Default 10 seconds for session checks
+let currentActivityState = null; // Store the current activity state
+let playbackActive = false; // Track if playback is currently active
+let recentlyAddedItems = []; // Store recently added items
+let isPaused = false; // Track the paused state
+let currentProgress = 0; // Track the progress of playback
+let remainingTime = ''; // Track remaining time
+let sessionCheckIntervalId = null; // Store session check interval ID
+let currentMediaId = null; // Track the currently playing media ID
+let isTransitioning = false; // New flag to manage the transition
+let recentlyAddedIndex = 0; // Track current item index
 
-      // If resuming the module, you might want to:
-      // - Avoid unnecessary data re-fetching
-      // - Prevent resetting ongoing animations
-      // - Trigger any required actions (like updating the DOM)
+let moduleConfig = {
+    mediaTypes: ['Movies'], // Default media types if not set in config
+    checkInterval: 60000,
+    activityCheckInterval: 10000,
+    recentlyAddedCheckInterval: 3600000, // Default 60 mins
+    headerPrefix: 'Media Center', // Default header prefix
+    width: 500,
+    height: 450,
+    fontSize: '14px', // Configurable font size for remaining time
+    contentFontSize: '14px', // Configurable font size for content
+    progressBarColor: '#4caf50',
+    progressBarPausedColor: '#ffa500',
+    progressBarBackgroundColor: '#ccc',
+    headerFontSize: '16px',
+    showHeaderLine: true,
+    audioPosterSize: 200, // Default size for Audio posters
+    videoPosterWidth: 150, // Default width for Movies/Shows posters
+    videoPosterHeight: 200 // Default height for Movies/Shows posters
+};
 
-      // For example, avoid re-fetching data if it's already up-to-date
-      if (!this.shouldUpdate) {
-        console.log("No update needed on resume.");
-        return; // Skip unnecessary actions when the module is resumed
-      }
-
-      // Add your custom logic for resuming the module, like refreshing content if needed
-      this.getData(); // Re-fetch data if necessary (e.g., after a long break)
-    }
-
-    // Other notifications like MODULE_PAUSED, etc. can be handled similarly
-    if (notification === "MODULE_PAUSED") {
-      console.log("MMM-Jellyfin is paused.");
-      // Handle module pause state (e.g., stop animations, pause data fetching)
-    }
-  },
-
-  getStyles() {
-    return ["MMM-Jellyfin.css"];
-  },
-
-  start() {
-    console.log("[MMM-Jellyfin] Starting module...");
-    this.items = [];
-    this.nowPlaying = null;
-    this.currentIndex = 0;
-    this.offline = false;
-    this.lastPositionTicks = 0;
-    this.shouldUpdate = false; // Add this flag
-
-    this.getData();
-
-    setInterval(() => {
-      if (!this.nowPlaying) this.getData();
-    }, this.config.updateInterval);
-
-    setInterval(() => {
-      if (!this.offline && !this.nowPlaying && this.items.length > 1) {
-        this.currentIndex = (this.currentIndex + 1) % this.items.length;
-        this.shouldUpdate = true;  // Only update when necessary
-        this.updateDom();
-      }
-    }, this.config.rotateInterval);
-
-    setInterval(() => {
-      if (!this.offline) this.checkNowPlaying();
-    }, this.config.nowPlayingCheckInterval);
-
-    setInterval(() => {
-      if (this.offline) this.getData();
-    }, this.config.retryInterval);
-  },
-
-  getData() {
-    this.sendSocketNotification("FETCH_JELLYFIN_DATA", this.config);
-  },
-
-  checkNowPlaying() {
-    this.sendSocketNotification("FETCH_NOW_PLAYING_DETAILS", {
-      serverUrl: this.config.serverUrl,
-      apiKey: this.config.apiKey,
-      userId: this.config.userId,
-    });
-
-    // API call to check the latest activity log entry for playback stopped
-    const activityLogUrl = `${this.config.serverUrl}/System/ActivityLog/Entries`;
-
-    fetch(`${activityLogUrl}?api_key=${this.config.apiKey}&limit=1`)
-      .then(response => response.json())
-      .then(activityData => {
-        if (activityData.Items && activityData.Items.length > 0) {
-          const latestEntry = activityData.Items[0];
-
-          // Check if the latest entry indicates playback has stopped
-          if (latestEntry.Type === "AudioPlaybackStopped" || latestEntry.Type === "VideoPlaybackStopped") {
-            console.log("[MMM-Jellyfin] Playback stopped.");
-
-            // Clear nowPlaying to stop showing the currently playing content
-            this.nowPlaying = null;
-
-            // Set flag to false, indicating no media is playing
-            this.isPlaying = false;
-
-            // Switch to Recently Added state by fetching data
-            this.getData(); // Trigger fetching of Recently Added content
-          }
-        }
-      })
-      .catch(error => {
-        console.error("[MMM-Jellyfin] Error fetching activity log:", error);
-      });
-  },
-
-  socketNotificationReceived(notification, payload) {
-    if (notification === "JELLYFIN_DATA") {
-      this.offline = false;
-      //this.show(1000, { lockString: "jellyfin-offline" }, () => { });
-
-      // Check if nowPlaying data has changed
-      if (payload.type === "nowPlaying") {
-        if (payload.data) {
-          // Only update the header if it changes from recently added to now playing
-          if (this.nowPlaying !== payload.data) {
-            this.nowPlaying = payload.data;
-            this.items = [];  // Clear items when switching to now playing
-            this.updateHeader(`${this.config.title}: Now Playing`);
-          }
-        } else {
-          this.nowPlaying = null;
-          this.updateHeader(""); // Clear the header if no Now Playing data
-        }
-      }
-      // Handle Recently Added
-      else if (payload.type === "recentlyAdded") {
-        // Only update header if Recently Added data changes
-        if (JSON.stringify(this.items) !== JSON.stringify(payload.data)) {
-          this.items = payload.data || [];
-          this.currentIndex = 0;
-          this.nowPlaying = null;
-          this.updateHeader(""); // Clear the header for recently added
-        }
-      }
-
-      // Only update the DOM if there's a meaningful change
-      this.updateDom();  // Only update content if necessary
-    } else if (notification === "JELLYFIN_OFFLINE") {
-      this.offline = true;
-      this.updateHeader("");  // Ensure the header is cleared when offline
-      this.hide(1000, { lockString: "jellyfin-offline" });  // Hide the entire module completely
-    }
-  },
-
-  updateHeader(text) {
-    this.data.header = text;  // Set the header to the appropriate text (or empty if offline)
-    this.updateDom();
-  },
-
-  renderContent(data, mediaType, item) {
-    const container = document.createElement("div");
-    container.className = "jellyfin-container";
-
-    // Apply relative position to the container to allow absolute positioning of child elements
-    container.style.position = "relative";
-    container.style.paddingBottom = "100px";  // Adjust this value to give enough space for the progress bar and remaining time
-
-    const details = document.createElement("div");
-    details.className = "jellyfin-details";
-
-    // For Video, use Name, for Audio use Name
-    const title = document.createElement("div");
-    title.className = "jellyfin-title";
-    title.textContent = mediaType === "Video" ? (data.Name || "Untitled") : (data.Name || "Untitled");
-    details.appendChild(title);
-
-    // For Audio, display Album and AlbumArtist
-    if (mediaType === "Audio" && data.Album) {
-      const album = document.createElement("div");
-      album.className = "jellyfin-album";
-      album.textContent = `Album: ${data.Album || "Unknown"}`;
-      details.appendChild(album);
-
-      const artist = document.createElement("div");
-      artist.className = "jellyfin-artist";
-      artist.textContent = `Artist: ${data.AlbumArtist || "Unknown"}`;
-      details.appendChild(artist);
-    } else if (data.PremiereDate) {
-      const date = document.createElement("div");
-      date.className = "jellyfin-premiere-date";
-      const formattedDate = new Date(data.PremiereDate).toLocaleDateString();
-      date.textContent = `Premiere: ${formattedDate}`;
-      details.appendChild(date);
-    }
-
-    if (data.OfficialRating || data.RunTimeTicks) {
-      const certRuntimeContainer = document.createElement("div");
-      certRuntimeContainer.className = "jellyfin-cert-runtime";
-
-      if (data.OfficialRating) {
-        const certificateImg = document.createElement("img");
-        certificateImg.className = "jellyfin-certificate";
-        certificateImg.src = `modules/MMM-Jellyfin/certificates/${data.OfficialRating}.png`;
-        certificateImg.alt = data.OfficialRating;
-        certRuntimeContainer.appendChild(certificateImg);
-      }
-
-      if (data.RunTimeTicks) {
-        const runtime = document.createElement("div");
-        runtime.className = "jellyfin-runtime";
-
-        // Format runtime differently for Video and Audio
-        if (mediaType === "Audio") {
-          const runtimeSeconds = Math.floor(data.RunTimeTicks / 10000000); // Convert ticks to seconds for audio
-          const runtimeMinutes = Math.floor(runtimeSeconds / 60);
-          const runtimeRemainingSeconds = runtimeSeconds % 60;
-          runtime.textContent = `${runtimeMinutes} min ${runtimeRemainingSeconds} sec`;
-        } else {
-          const runtimeMinutes = Math.floor(data.RunTimeTicks / 600000000); // Convert ticks to minutes for video
-          runtime.textContent = `${runtimeMinutes} min`;
+Module.register('MMM-Jellyfin', {
+    start: function () {
+        console.log('Starting MMM-Jellyfin...');
+        if (this.config) {
+            moduleConfig = { ...moduleConfig, ...this.config };
         }
 
-        certRuntimeContainer.appendChild(runtime);
-      }
+        // Assign values from config
+        serverUrl = moduleConfig.serverUrl;
+        apiKey = moduleConfig.apiKey;
+        userId = moduleConfig.userId;
 
-      details.appendChild(certRuntimeContainer);
-    }
+        if (!serverUrl || !apiKey || !userId) {
+            console.error("MMM-JellyNew: Missing required configuration (serverUrl, apiKey, or userId). Module will not function correctly.");
+            return;
+        }
 
-    if (data.Overview) {
-      const overview = document.createElement("div");
-      overview.className = "jellyfin-overview";
+        this.checkServerStatus(); // Initial check on startup
 
-      const overviewText = document.createElement("p");
-      overviewText.className = "jellyfin-overview-text"; // Ensure this class is added for scrolling
-      overviewText.textContent = data.Overview || "No description available.";
+        // Check server status every minute
+        setInterval(() => {
+            this.checkServerStatus();
+        }, 60000);
 
-      const overviewScrollContainer = document.createElement("div");
-      overviewScrollContainer.className = "jellyfin-overview-scroll";
+        this.startRecentlyAddedTimer(); // Start auto-refresh timer
 
-      overviewScrollContainer.appendChild(overviewText);
-      overview.appendChild(overviewScrollContainer);
+        // Bind methods
+        this.startActivityLogCheck = this.startActivityLogCheck.bind(this);
+        this.checkActivityLog = this.checkActivityLog.bind(this);
+        this.managePlayback = this.managePlayback.bind(this);
+        this.fetchAndDisplayPlayingItemDetails = this.fetchAndDisplayPlayingItemDetails.bind(this);
+        this.fetchRecentlyAdded = this.fetchRecentlyAdded.bind(this);
 
-      details.appendChild(overview);
-    }
+        this.startActivityLogCheck();
+    },
 
-    // Add progress bar and remaining time logic
-    if (this.nowPlaying && mediaType !== "Music") {
-      const progressBarContainer = document.createElement("div");
-      progressBarContainer.className = "jellyfin-progress-bar-container";
+    checkServerStatus: async function () {
+        try {
+            const response = await fetch(`${serverUrl}/System/Ping`);
+            if (!response.ok) throw new Error('Server did not respond properly.');
 
-      const progressBar = document.createElement("div");
-      progressBar.className = "jellyfin-progress-bar";
-      const progressPercentage = (item.positionTicks / item.runTimeTicks) * 100;
-      progressBar.style.width = `${progressPercentage}%`;
+            console.log("Jellyfin is online.");
+            this.show(); // Show the module if it's hidden
+            return true;
+        } catch (error) {
+            console.warn("Jellyfin server is down or unreachable.");
+            this.hide(); // Hide the module if the server is down
+            return false;
+        }
+    },
 
-      const isPaused = item.isPaused;
-      if (isPaused) {
-        progressBar.style.backgroundColor = "red"; // Red when paused
-      } else {
-        progressBar.style.backgroundColor = "#4caf50"; // Green when playing
-      }
+    getDom: function () {
+        const wrapper = document.createElement('div');
+        wrapper.id = 'MMM-Jellyfin-wrapper';
+        wrapper.style.width = `${moduleConfig.width}px`;
+        wrapper.style.height = `${moduleConfig.height}px`;
 
-      progressBarContainer.appendChild(progressBar);
+        const header = document.createElement('div');
+        header.id = 'MMM-Jellyfin-header';
+        header.className = 'module-header';
+        header.style.textAlign = 'right';
+        header.style.fontSize = moduleConfig.headerFontSize;
+        if (moduleConfig.showHeaderLine) {
+            header.style.borderBottom = '1px solid #ddd';
+            header.style.paddingBottom = '5px';
+        }
+        header.innerHTML = `${moduleConfig.headerPrefix} - ${playbackActive ? 'Now Playing' : 'Recently Added'}`;
+        wrapper.appendChild(header);
 
-      // Position progress bar at the bottom of the module
-      progressBarContainer.style.position = "absolute";
-      progressBarContainer.style.bottom = "40px"; // Adjust this value if needed to make space
-
-      details.appendChild(progressBarContainer);
-
-      // Remaining Time
-      const remainingTime = document.createElement("div");
-      remainingTime.className = "jellyfin-remaining-time";
-      const remainingTicks = item.runTimeTicks - item.positionTicks;
-
-      // Format remaining time differently for Video and Audio
-      if (mediaType === "Audio") {
-        const remainingSeconds = Math.floor(remainingTicks / 10000000); // Convert ticks to seconds for audio
-        const remainingMinutes = Math.floor(remainingSeconds / 60);
-        const remainingRemainingSeconds = remainingSeconds % 60;
-        remainingTime.textContent = `Remaining: ${remainingMinutes} min ${remainingRemainingSeconds} sec`;
-      } else {
-        const remainingMinutes = Math.floor(remainingTicks / 600000000); // Convert ticks to minutes for video
-        remainingTime.textContent = `Remaining: ${remainingMinutes} min`;
-      }
-
-      remainingTime.style.position = "absolute";
-      remainingTime.style.bottom = "10px"; // Adjust this value if needed to make space
-
-      details.appendChild(remainingTime);
-
-      if (!isPaused) {
-        this.lastPositionTicks = item.positionTicks;
-      }
-    }
-
-    // Use poster from item for both Audio and Video
-    let posterUrl = item.poster || "";
-    const poster = document.createElement("img");
-    poster.className = "jellyfin-poster";
-    poster.src = posterUrl || "modules/MMM-Jellyfin/placeholder.png";  // Default placeholder image
-
-    if (mediaType === "Audio") {
-      // If audio, fetch the album poster using AlbumId
-      const albumId = data.AlbumId;
-      if (albumId) {
-        const albumUrl = `http://192.168.1.96:8096/Items/${albumId}?userId=${this.config.userId}&api_key=${this.config.apiKey}&limit=1`;
-        fetch(albumUrl)
-          .then(response => response.json())
-          .then(albumData => {
-            if (albumData && albumData.ImageTags && albumData.ImageTags.Primary) {
-              poster.src = `http://192.168.1.96:8096/Items/${albumId}/Images/Primary?api_key=${this.config.apiKey}`;
-            }
-          })
-          .catch(error => console.error("Error fetching album poster:", error));
-      }
-
-      poster.style.width = "200px";
-      poster.style.height = "200px";
-    }
-
-    // If no poster is available for Audio, use a placeholder image
-    if (!poster.src || poster.src === "modules/MMM-Jellyfin/placeholder.png") {
-      poster.src = "modules/MMM-Jellyfin/placeholder.png";  // Replace with actual placeholder path
-    }
-
-    container.appendChild(details);
-    container.appendChild(poster);
-
-    return container;
-  },
-
-  getDom() {
-    const wrapper = document.createElement("div");
-    wrapper.className = "jellyfin-wrapper";
-
-    if (this.offline) {
-      wrapper.innerHTML = "";  // Clear the content if offline
-      return wrapper;
-    }
-
-    // If nowPlaying has valid data, show it
-    const item = this.nowPlaying || this.items[this.currentIndex];
-
-    if (!item) {
-      wrapper.innerHTML = "";  // If there is no item to display, clear content
-      return wrapper;
-    }
-
-    const itemId = item.id;
-    const url = `${this.config.serverUrl}/Items/${itemId}?userId=${this.config.userId}&api_key=${this.config.apiKey}`;
-
-    fetch(url)
-      .then(response => response.json())
-      .then(data => {
-        const mediaType = data.MediaSources[0].MediaStreams[0].Type;
-        const content = this.renderContent(data, mediaType, item);
+        const content = document.createElement('div');
+        content.id = 'MMM-Jellyfin-content';
+        content.style.display = 'flex';
+        content.style.alignItems = 'center';
+        content.style.justifyContent = 'space-between';
+        content.style.marginTop = '10px';
         wrapper.appendChild(content);
-      })
-      .catch(error => {
-        console.error("[MMM-Jellyfin] Error fetching item details:", error);
-        const errorMessage = document.createElement("div");
-        errorMessage.textContent = `Error: ${error.message}`;
-        wrapper.appendChild(errorMessage);
-      });
 
-    return wrapper;
-  },
+        const footer = document.createElement('div');
+        footer.id = 'MMM-Jellyfin-footer';
+        footer.style.display = 'none'; // Hide footer by default
+        footer.innerHTML = `
+            <div id="progress-bar" style="position: relative; height: 10px; background: ${moduleConfig.progressBarBackgroundColor}; border-radius: 5px;">
+                <div id="progress-bar-fill" style="height: 100%; width: 0%; background: ${moduleConfig.progressBarColor}; border-radius: 5px;"></div>
+            </div>
+            <p id="progress-time" style="text-align: left; margin-top: 5px; font-size: ${moduleConfig.fontSize};">${remainingTime}</p>
+        `;
+        wrapper.appendChild(footer);
+
+        return wrapper;
+    },
+
+    updateHeader: function () {
+        const header = document.getElementById('MMM-Jellyfin-header');
+        if (header) {
+            header.innerHTML = `${moduleConfig.headerPrefix} - ${playbackActive ? 'Now Playing' : 'Recently Added'}`;
+        }
+    },
+
+    updateFooter: function () {
+        const footer = document.getElementById('MMM-Jellyfin-footer');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const progressTime = document.getElementById('progress-time');
+
+        if (footer) {
+            if (playbackActive) {
+                footer.style.display = 'block';
+                if (progressBarFill) {
+                    progressBarFill.style.width = `${currentProgress}%`;
+                    progressBarFill.style.background = isPaused ? moduleConfig.progressBarPausedColor : moduleConfig.progressBarColor;
+                }
+                if (progressTime) {
+                    progressTime.innerText = isPaused
+                        ? 'Paused'
+                        : `Remaining Time: ${remainingTime}`;
+                }
+            } else {
+                footer.style.display = 'none';
+            }
+        }
+    },
+
+    updateContentUI: async function (itemDetails) { // Make the function async
+        const content = document.getElementById('MMM-Jellyfin-content');
+
+        if (content) {
+            content.innerHTML = '';
+
+            const leftColumn = document.createElement('div');
+            leftColumn.style.flex = '1';
+            leftColumn.style.textAlign = 'left';
+            leftColumn.style.fontSize = moduleConfig.contentFontSize;
+
+            const rightColumn = document.createElement('div');
+            rightColumn.style.flex = '0 0 auto';
+            rightColumn.style.marginLeft = '10px';
+
+            // Determine poster size and placeholder logic
+            const isAudio = itemDetails.Type === 'Audio';
+            const posterSize = isAudio
+                ? `${moduleConfig.audioPosterSize}px`
+                : `${moduleConfig.videoPosterWidth}px`;
+
+            const posterHeight = isAudio
+                ? `${moduleConfig.audioPosterSize}px`
+                : `${moduleConfig.videoPosterHeight}px`;
+
+            // Construct primary, ParentBackdropItemId, and placeholder image URLs
+            const primaryImageUrl = `${serverUrl}/Items/${itemDetails.Id}/Images/Primary?api_key=${apiKey}`;
+            const parentBackdropImageUrl = itemDetails.ParentBackdropItemId
+                ? `${serverUrl}/Items/${itemDetails.ParentBackdropItemId}/Images/Backdrop?api_key=${apiKey}`
+                : null;
+
+            const placeholderImage = isAudio
+                ? `modules/MMM-Jellyfin/placeholder/audio_placeholder.png`
+                : `modules/MMM-Jellyfin/placeholder/movie_placeholder.png`;
+
+            // Set the poster image with graceful fallbacks
+            const posterImage = document.createElement('img');
+            posterImage.src = primaryImageUrl; // Try primary image first
+            posterImage.alt = 'Poster';
+            posterImage.style.width = posterSize;
+            posterImage.style.height = posterHeight;
+            posterImage.style.objectFit = 'cover';
+
+            // Fallback to ParentBackdropItemId if primary fails
+            posterImage.onerror = function () {
+                if (parentBackdropImageUrl) {
+                    console.log(`Primary image failed, trying ParentBackdropItemId: ${parentBackdropImageUrl}`);
+                    this.onerror = null; // Avoid infinite loop
+                    this.src = parentBackdropImageUrl;
+                } else {
+                    console.log(`No ParentBackdropItemId available, using placeholder.`);
+                    this.src = placeholderImage; // Fallback to placeholder if no ParentBackdropItemId
+                }
+            };
+
+            rightColumn.appendChild(posterImage);
+
+            // Format the PremiereDate as DD MM YYYY
+            const premiereDate = itemDetails.PremiereDate
+                ? new Date(itemDetails.PremiereDate).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                })
+                : 'N/A';
+
+            // Calculate runtime in hours and minutes
+            const runtimeTicks = itemDetails.RunTimeTicks || 0;
+            const ticksPerMinute = 600000000; // 1 minute in ticks
+            const totalMinutes = Math.floor(runtimeTicks / ticksPerMinute);
+            const runtimeHours = Math.floor(totalMinutes / 60);
+            const runtimeMinutes = totalMinutes % 60;
+
+            let formattedRuntime;
+            if (itemDetails.Type === 'Episode') {
+                formattedRuntime = runtimeHours > 0
+                    ? `${runtimeHours}h ${runtimeMinutes}m`
+                    : `${runtimeMinutes}m`;
+            } else {
+                formattedRuntime = runtimeTicks
+                    ? `${runtimeHours}h ${runtimeMinutes}m`
+                    : 'N/A';
+            }
+
+            // Lookup for the certificate image
+            const certificate = itemDetails.OfficialRating || 'Unknown';
+            const certificateImagePath = `modules/MMM-Jellyfin/certificates/${certificate}.png`;
+
+            // Community Rating (rounded)
+            const communityRating = itemDetails.CommunityRating
+                ? itemDetails.CommunityRating.toFixed(1)
+                : 'N/A';
+
+            // Resolution and Atmos logic
+            const selectedResolution = ['Vision', '4K', '1080'].find((res) =>
+                itemDetails.MediaStreams?.some((stream) => stream.DisplayTitle?.includes(res))
+            );
+            const resolutionImagePath = selectedResolution
+                ? `modules/MMM-Jellyfin/quality/${selectedResolution.toLowerCase()}.png`
+                : null;
+
+            const isAtmos = itemDetails.MediaStreams?.[1]?.DisplayTitle?.includes('Atmos');
+            const atmosImagePath = isAtmos ? `modules/MMM-Jellyfin/quality/atmos.png` : null;
+
+            const certificateImage = this.createImageElement(certificateImagePath, '40px');
+            const resolutionImage = resolutionImagePath
+                ? this.createImageElement(resolutionImagePath, '50px', '5px')
+                : null;
+            const atmosImage = atmosImagePath
+                ? this.createImageElement(atmosImagePath, '50px', '5px')
+                : null;
+
+            let overviewTextContent = itemDetails.Overview || 'No Description Available';
+
+            // Fetch Last.fm data if the item is Audio and an AlbumArtist is provided
+            if (isAudio && itemDetails.AlbumArtist) {
+                try {
+                    const lastFmOverview = await this.fetchArtistDetailsFromLastFM(itemDetails.AlbumArtist);
+                    if (lastFmOverview) {
+                        overviewTextContent = lastFmOverview;
+                    } else {
+                        console.warn('No data fetched from Last.fm. Using fallback overview.');
+                    }
+                } catch (error) {
+                    console.warn('Failed to fetch artist data from Last.fm:', error);
+                }
+            }
+
+            // Add series name for Shows
+            if (itemDetails.Type === 'Episode' && itemDetails.SeriesName) {
+                const seriesNameElement = document.createElement('h4');
+                seriesNameElement.style.fontWeight = 'bold';
+                seriesNameElement.style.color = '#ccc';
+                seriesNameElement.style.marginBottom = '0px';
+                seriesNameElement.innerText = itemDetails.SeriesName;
+                leftColumn.appendChild(seriesNameElement);
+            }
+
+            // Add artist name for Audio
+            if (isAudio && itemDetails.AlbumArtist) {
+                const artistNameElement = document.createElement('h4');
+                artistNameElement.style.fontWeight = 'bold';
+                artistNameElement.style.color = '#ccc';
+                artistNameElement.style.marginBottom = '0px';
+                artistNameElement.style.fontSize = '16px';
+                artistNameElement.innerText = itemDetails.AlbumArtist;
+                leftColumn.appendChild(artistNameElement);
+            }
+
+            // Add title
+            const titleElement = document.createElement('h3');
+            titleElement.style.fontWeight = 'bold';
+            titleElement.style.marginTop = '0px';
+            titleElement.style.marginBottom = '0px';
+            titleElement.innerText = itemDetails.Name || 'Unknown Title';
+            leftColumn.appendChild(titleElement);
+
+            // Add album name for Audio and move closer to the title
+            if (itemDetails.Type === 'Audio' && itemDetails.Album) {
+                const albumNameElement = document.createElement('h4');
+                albumNameElement.style.fontWeight = 'bold';
+                albumNameElement.style.color = '#ccc';
+                albumNameElement.style.marginTop = '0px'; // Adjust margin to move closer to the title
+                albumNameElement.style.marginBottom = '0px'; // No bottom margin
+                albumNameElement.style.fontSize = '16px'; // Set smaller font size
+                albumNameElement.innerText = itemDetails.Album;
+                leftColumn.appendChild(albumNameElement);
+            }
+
+            // Add runtime and premiere date for Movies (hide for Shows and Audio)
+            if (itemDetails.Type === 'Movie' && premiereDate) {
+                const runtimeElement = document.createElement('p');
+                runtimeElement.style.margin = '5px 0';
+                runtimeElement.innerText = `Premiere: ${premiereDate} | Runtime: ${formattedRuntime}`;
+                leftColumn.appendChild(runtimeElement);
+            } else if (itemDetails.Type !== 'Audio') {
+                const runtimeElement = document.createElement('p');
+                runtimeElement.style.margin = '5px 0';
+                runtimeElement.innerText = `Runtime: ${formattedRuntime}`;
+                leftColumn.appendChild(runtimeElement);
+            }
+
+            const detailsRow = document.createElement('div');
+            detailsRow.style.display = 'flex';
+            detailsRow.style.alignItems = 'center';
+            detailsRow.style.gap = '10px';
+
+            // Add certificate and quality images only for Movies
+            if (itemDetails.Type === 'Movie') {
+                detailsRow.appendChild(certificateImage);
+            }
+            if (resolutionImage) detailsRow.appendChild(resolutionImage);
+            if (atmosImage) detailsRow.appendChild(atmosImage);
+
+            // Add rating only for non-Audio items
+            if (itemDetails.Type !== 'Audio') {
+                const ratingText = document.createElement('span');
+                ratingText.innerText = `Rating: ${communityRating}`;
+                ratingText.style.fontSize = moduleConfig.contentFontSize;
+                ratingText.style.color = '#ddd';
+                detailsRow.appendChild(ratingText);
+            }
+
+            leftColumn.appendChild(detailsRow);
+
+            // Add genre only if available
+            if (itemDetails.Genres && itemDetails.Genres.length > 0) {
+                const genres = itemDetails.Genres.join(', ');
+                const genreElement = document.createElement('p');
+                genreElement.style.margin = '5px 0';
+                genreElement.innerText = `Genre: ${genres}`;
+                leftColumn.appendChild(genreElement);
+            }
+
+            // Add overview with dynamic scrolling
+            const overviewContainer = document.createElement('div');
+            overviewContainer.style.marginTop = '0';
+            overviewContainer.style.maxHeight = '5.6em'; // 5 lines of text
+            overviewContainer.style.overflow = 'hidden';
+            overviewContainer.style.lineHeight = '1.4';
+            overviewContainer.style.position = 'relative';
+            overviewContainer.style.fontSize = moduleConfig.contentFontSize;
+
+            const overviewText = document.createElement('p');
+            overviewText.style.margin = '0';
+            overviewText.innerText = overviewTextContent; // Use fetched or fallback overview
+            overviewContainer.appendChild(overviewText);
+
+            leftColumn.appendChild(overviewContainer);
+            content.appendChild(leftColumn);
+            content.appendChild(rightColumn);
+
+            // Start smooth scrolling dynamically based on text length
+            this.startSmoothOverviewScrolling(overviewContainer, overviewText);
+        }
+    },
+
+
+    startSmoothOverviewScrolling: function (container, text) {
+        const totalScrollDuration = 25000; // Total duration for one complete scroll (25 seconds)
+        const resetDuration = 2000; // Duration for the reset transition (in ms, configurable)
+        const scrollDistance = text.scrollHeight - container.clientHeight;
+
+        if (scrollDistance > 0) {
+            const totalFrames = totalScrollDuration / 16; // Roughly 60 FPS, 16ms per frame
+            const scrollStep = scrollDistance / totalFrames; // Step size for normal scrolling
+            let scrollPosition = 0;
+            let isResetting = false;
+
+            const smoothScroll = () => {
+                if (isResetting) {
+                    // Smooth reset to the top
+                    const resetFrames = resetDuration / 16; // Frames for the reset transition
+                    const resetStep = scrollDistance / resetFrames; // Step size for reset
+                    scrollPosition -= resetStep;
+
+                    container.scrollTop = Math.max(0, scrollPosition);
+
+                    if (scrollPosition <= 0) {
+                        // Reset complete, start scrolling again
+                        isResetting = false;
+                        scrollPosition = 0;
+                        requestAnimationFrame(smoothScroll);
+                    } else {
+                        requestAnimationFrame(smoothScroll);
+                    }
+                } else {
+                    // Normal scrolling
+                    scrollPosition += scrollStep;
+                    container.scrollTop = scrollPosition;
+
+                    if (scrollPosition >= scrollDistance) {
+                        // Pause at the bottom and initiate reset
+                        setTimeout(() => {
+                            isResetting = true;
+                            requestAnimationFrame(smoothScroll);
+                        }, 500); // Optional pause before reset
+                    } else {
+                        requestAnimationFrame(smoothScroll);
+                    }
+                }
+            };
+
+            requestAnimationFrame(smoothScroll);
+        }
+    },
+
+    fetchArtistDetailsFromLastFM: async function (artistName) {
+        console.log(artistName)
+        const apiKey = this.config.lastFmApiKey; // Replace with your Last.fm API key
+        const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(
+            artistName
+        )}&api_key=${apiKey}&format=json`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error('Failed to fetch data from Last.fm');
+        }
+
+        const data = await response.json();
+        if (data.artist && data.artist.bio && data.artist.bio.content) {
+            return data.artist.bio.content.split('\n')[0]; // Return the first paragraph of bio
+        }
+        return null; // Return null if no data is found
+    },
+
+
+    createImageElement: function (src, width, marginLeft = '0px') {
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.width = width;
+        img.style.height = 'auto';
+        img.style.marginLeft = marginLeft;
+        img.style.marginBottom = '5px';
+        img.onerror = function () {
+            this.style.display = 'none';
+        };
+        return img;
+    },
+
+    startActivityLogCheck: function () {
+        console.log('Starting activity log check...');
+        setInterval(() => {
+            this.checkActivityLog();
+        }, activityCheckInterval);
+    },
+
+    checkActivityLog: async function () {
+        try {
+            const response = await fetch(`${serverUrl}/System/ActivityLog/Entries?api_key=${apiKey}&limit=1`, {
+                headers: { 'X-Emby-Token': apiKey }
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to fetch activity log');
+            }
+
+            const data = await response.json();
+            const targetStates = [
+                'AudioPlayback',
+                'VideoPlayback',
+                'AudioPlaybackStopped',
+                'VideoPlaybackStopped',
+                'SessionEnded'
+            ];
+
+            if (data.Items.length > 0) {
+                const logEntry = data.Items[0];
+                if (targetStates.includes(logEntry.Type)) {
+                    currentActivityState = logEntry.Type;
+
+                    if (['AudioPlayback', 'VideoPlayback'].includes(logEntry.Type)) {
+                        playbackActive = true;
+                        this.managePlayback(true, logEntry.ItemId);
+                    } else {
+                        playbackActive = false;
+                        this.managePlayback(false);
+                    }
+                    this.updateHeader();
+                    this.updateFooter();
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching activity log:', error);
+        }
+    },
+
+    managePlayback: function (isPlaying, itemId = null) {
+        if (isPlaying) {
+            playbackActive = true;
+
+            // Stop Recently Added cycle
+            if (this.recentlyAddedInterval) {
+                clearInterval(this.recentlyAddedInterval);
+                this.recentlyAddedInterval = null;
+                console.log("Paused Recently Added cycling due to Now Playing.");
+            }
+
+            // Fetch and display Now Playing item
+            if (!sessionCheckIntervalId) {
+                this.fetchAndDisplayPlayingItemDetails(itemId);
+                sessionCheckIntervalId = setInterval(() => {
+                    this.fetchSessionDetails(); // Update playback progress
+                }, sessionCheckInterval);
+            }
+        } else {
+            playbackActive = false;
+
+            // Ensure recentlyAddedDetails exists before checking its length
+            if (!this.recentlyAddedInterval && Array.isArray(this.recentlyAddedDetails) && this.recentlyAddedDetails.length > 0) {
+                this.startRecentlyAddedCycle();
+                console.log("Resumed Recently Added cycling.");
+            }
+
+            clearInterval(sessionCheckIntervalId);
+            sessionCheckIntervalId = null;
+            this.fetchRecentlyAdded();
+        }
+
+        this.updateHeader();
+        this.updateFooter();
+    },
+
+    fetchRecentlyAdded: async function () {
+        console.log('Fetching recently added items...');
+        let url = '';
+
+        const isOnline = await this.checkServerStatus();
+        if (!isOnline) return; // Stop execution if the server is down
+
+        if (moduleConfig.mediaTypes.includes('Movies')) {
+            url = `${serverUrl}/Users/${userId}/Items/Latest?IncludeItemTypes=Movie&Limit=15&api_key=${apiKey}`;
+        } else if (moduleConfig.mediaTypes.includes('Shows')) {
+            url = `${serverUrl}/Users/${userId}/Items/Latest?collectionType=tvshows&ParentId=a656b907eb3a73532e40e44b968d0225&api_key=${apiKey}`;
+        } else if (moduleConfig.mediaTypes.includes('Audio')) {
+            url = `${serverUrl}/Users/${userId}/Items/Latest?collectionType=music&ParentId=7e64e319657a9516ec78490da03edccb&api_key=${apiKey}`;
+        }
+
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Failed to fetch recently added items');
+
+            const data = await response.json();
+            console.log(data);
+
+            if (JSON.stringify(data) === JSON.stringify(recentlyAddedItems)) {
+                console.log("Recently added items have not changed. Skipping update.");
+                return; // Do not update UI if no change
+            }
+
+            recentlyAddedItems = data;
+            console.log(`Updated Recently Added - Found ${recentlyAddedItems.length} items.`);
+
+            // Fetch detailed metadata for each item
+            let detailedItems = [];
+            for (let item of recentlyAddedItems) {
+                const details = await this.fetchItemDetails(item.Id);
+                if (details) {
+                    detailedItems.push(details);
+                }
+            }
+
+            this.recentlyAddedDetails = detailedItems;
+
+            if (detailedItems.length > 0) {
+                this.updateContentUI(detailedItems[0]); // Show first item
+                this.startRecentlyAddedCycle(); // Start cycling
+            } else {
+                console.log('No detailed recently added items found.');
+            }
+
+        } catch (error) {
+            console.error('Error fetching recently added items:', error);
+        }
+    },
+
+    fetchItemDetails: async function (itemId) {
+        try {
+            const response = await fetch(`${serverUrl}/Items/${itemId}?userId=${userId}&api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Failed to fetch item details');
+
+            return await response.json(); // Return detailed item data
+        } catch (error) {
+            console.error(`Error fetching details for item ${itemId}:`, error);
+            return null;
+        }
+    },
+
+    startRecentlyAddedTimer: function () {
+        const intervalTime = moduleConfig.recentlyAddedCheckInterval || 3600000; // Default 60 mins
+        console.log(`Starting Recently Added auto-refresh every ${intervalTime / 60000} minutes.`);
+
+        setInterval(() => {
+            this.fetchRecentlyAdded();
+        }, intervalTime);
+    },
+
+    startRecentlyAddedCycle: function () {
+        const cycleTime = moduleConfig.recentlyAddedCycleTime || 30000; // Default 30 seconds
+
+        // Prevent duplicate intervals
+        if (this.recentlyAddedInterval) {
+            clearInterval(this.recentlyAddedInterval);
+        }
+
+        this.recentlyAddedInterval = setInterval(() => {
+            if (!playbackActive && this.recentlyAddedDetails.length > 0) {
+                recentlyAddedIndex = (recentlyAddedIndex + 1) % this.recentlyAddedDetails.length;
+                this.fadeOutAndUpdate(recentlyAddedIndex);
+            }
+        }, cycleTime);
+
+        console.log(`Started Recently Added cycling every ${cycleTime / 1000} seconds.`);
+    },
+
+    fadeOutAndUpdate: function (index) {
+        const content = document.getElementById('MMM-Jellyfin-content');
+
+        if (content) {
+            content.style.transition = "opacity 1s ease-out"; // Smooth fade-out
+            content.style.opacity = "0";
+
+            setTimeout(() => {
+                this.updateContentUI(this.recentlyAddedDetails[index]);
+
+                content.style.transition = "opacity 1s ease-in"; // Smooth fade-in
+                content.style.opacity = "1";
+            }, 1000); // Wait 1s before switching content
+        }
+    },
+
+    fetchAndDisplayItemDetails: async function (itemId, isRecentlyAdded = false) {
+        try {
+            const response = await fetch(`${serverUrl}/Items/${itemId}?userId=${userId}&api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Failed to fetch item details');
+
+            const itemDetails = await response.json();
+            this.updateContentUI(itemDetails, isRecentlyAdded);
+        } catch (error) {
+            console.error('Error fetching item details:', error);
+        }
+    },
+
+    fetchAndDisplayPlayingItemDetails: async function (itemId) {
+        try {
+            const response = await fetch(`${serverUrl}/Items/${itemId}?userId=${userId}&api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Failed to fetch playing item details');
+
+            const itemDetails = await response.json();
+            this.updateContentUI(itemDetails);
+        } catch (error) {
+            console.error('Error fetching playing item details:', error);
+        }
+    },
+
+    fetchSessionDetails: async function () {
+        try {
+            const response = await fetch(`${serverUrl}/Sessions?api_key=${apiKey}`);
+            if (!response.ok) throw new Error('Failed to fetch session details');
+
+            const data = await response.json();
+
+            if (data.length > 0 && data[0].NowPlayingItem) {
+                const newMediaId = data[0].NowPlayingItem.Id; // Get the currently playing media ID
+
+                if (newMediaId !== this.currentPlayingMediaId) {
+                    // If the media has changed, update the UI
+                    console.log('Media has changed. Updating UI...');
+                    this.currentPlayingMediaId = newMediaId; // Update stored media ID
+                    await this.updateContentUI(data[0].NowPlayingItem); // Refresh the entire UI
+                } else {
+                    // Media hasn't changed; update only progress and playback details
+                    console.log('Media unchanged. Updating progress...');
+                    isPaused = data[0].PlayState.IsPaused;
+
+                    const positionTicks = data[0].PlayState.PositionTicks;
+                    const runTimeTicks = data[0].NowPlayingItem.RunTimeTicks;
+                    currentProgress = Math.round((positionTicks / runTimeTicks) * 100);
+
+                    const remainingTicks = runTimeTicks - positionTicks;
+                    remainingTime = this.calculateRemainingTime(remainingTicks, data[0].NowPlayingItem.Type);
+
+                    this.updateFooter(); // Update progress bar and remaining time
+                }
+            } else {
+                // If no playing item is found, stop playback
+                console.log('Playback has stopped.');
+                this.managePlayback(false);
+            }
+        } catch (error) {
+            console.error('Error fetching session details:', error);
+        }
+    },
+
+    calculateRemainingTime: function (remainingTicks, mediaType) {
+        if (mediaType === 'Audio') {
+            const remainingMinutes = Math.floor(remainingTicks / 600000000);
+            const remainingSeconds = Math.floor((remainingTicks % 600000000) / 10000000);
+            return `${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        } else if (mediaType === 'Movie') {
+            const remainingHours = Math.floor(remainingTicks / 36000000000);
+            const remainingMinutes = Math.floor((remainingTicks % 36000000000) / 600000000);
+
+            return remainingHours > 0
+                ? `${remainingHours}h ${remainingMinutes}m`
+                : `${remainingMinutes}m`;
+        } else {
+            const remainingMinutes = Math.floor(remainingTicks / 600000000);
+            const remainingSeconds = Math.floor((remainingTicks % 600000000) / 10000000);
+            return `${remainingMinutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+        }
+    },
 });

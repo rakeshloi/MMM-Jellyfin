@@ -1,121 +1,104 @@
-MMM-Jellyfin
-TODO:  Add Shows to now playing with a new view, add recently added music and shows to now playing.  I remooved the header as it was causing too many issues, will need to add those back in.
+MMM-JellyNew
+A MagicMirror² module that integrates with Jellyfin to display Now Playing media and Recently Added items.
+Supports Movies, TV Shows, and Audio, and automatically fetches metadata, including Last.fm artist info for music.
+This is a complete ground up rebuild becase..... well i hated the code. If any one out there would like to contribute feel free.
+I still need to the lag in the progress bar update as there is an initial 30 second delay.
 
-A MagicMirror module that integrates with a Jellyfin server to display recently added items or now playing content. The module dynamically switches between "Recently Added" and "Now Playing", showing detailed information and progress for the currently playing item when applicable.
+📜 Features
+✔ Now Playing – Displays the currently playing movie, TV show, or song.
+✔ Recently Added – Cycles through the latest Movies added to your Jellyfin library, Shows and Music coming soon.
+✔ Configurable Intervals – Set how often to refresh recently added content.
+✔ Smart Updates – Only refreshes if new media is added, reducing unnecessary API calls.
+✔ Playback Detection – Automatically switches between Now Playing and Recently Added.
+✔ Smooth UI Transitions – Fades between items for a clean display.
+✔ Last.fm Integration – Fetches artist bios for audio media.
+✔ Auto-Hide on Server Downtime – If Jellyfin is down, the module hides itself.
 
-Features
-Now Playing Support: Automatically displays "Now Playing" content (title, poster, and progress bar) if a user is actively playing something on Jellyfin.
-Recently Added: Shows recently added movies, series, or other content when nothing is playing.
-Dynamic Switching: Seamlessly switches between "Now Playing" and "Recently Added" views.
-Progress Bar: Displays playback progress for "Now Playing" items, including a visual indicator for paused vs. playing states.
-Auto-Hide When Offline: Automatically hides the module when Jellyfin is unreachable and re-displays when the server becomes available again.
-Customizable Layout: Uses a clean, flexible layout with posters on the left and text on the right.
-Installation
-Navigate to your MagicMirror modules folder:
+📌 Installation
+Navigate to your MagicMirror modules directory:
 bash
 Copy
+Edit
 cd ~/MagicMirror/modules
-Clone or copy this module:
+Clone this repository:
 bash
 Copy
-git clone https://github.com/YourUsername/MMM-Jellyfin.git
-Ensure the folder is named MMM-Jellyfin.
-Go into the module folder and install dependencies:
+Edit
+git clone https://github.com/yourusername/MMM-JellyNew.git
+Navigate into the module directory:
 bash
 Copy
-cd MMM-Jellyfin
+Edit
+cd MMM-JellyNew
+Install dependencies:
+bash
+Copy
+Edit
 npm install
-Configuration
-Add the module to your MagicMirror config/config.js file. Here’s an example:
+Configure the module in your config.js.
+⚙ Configuration
+Add this module to your MagicMirror config.js file:
 
 js
 Copy
+Edit
 {
-  module: "MMM-Jellyfin",
-  position: "bottom_right", // or any other region
-  config: {
-    apiKey: "YOUR_API_KEY",                // Jellyfin API key
-    serverUrl: "http://XXX.XXX.X.XX:8096", // Jellyfin server URL
-    userId: "YOUR_USER_ID",                // Jellyfin user ID
-    contentType: "Movie",                  // e.g., "Movie", "Series", etc.
-    maxItems: 5,                           // Number of recently added items to fetch
-    updateInterval: 10 * 60 * 1000,        // Refresh data every 10 minutes
-    rotateInterval: 30 * 1000              // Rotate between items every 30 seconds
-  }
+    module: "MMM-JellyNew",
+    position: "top_right", // Choose your preferred position
+    config: {
+        serverUrl: "http://your-jellyfin-server:8096", // Jellyfin Server URL
+        apiKey: "your-api-key-here", // Jellyfin API Key
+        userId: "your-user-id", // Jellyfin User ID
+        lastFmApiKey: "your lastfm api key",
+        mediaTypes: ["Movies"], // Options: "Movies", TV Shows and Music coming soon.
+        recentlyAddedCheckInterval: 3600000, // Refresh every 60 mins
+        recentlyAddedCycleTime: 30000, // Show each item for 30 seconds
+        lastFmApiKey: "your-lastfm-api-key", // Required for Audio artist bios
+        showHeaderLine: true, // Show a line under the header
+        headerPrefix: "Media Center", // Customize the header
+        progressBarColor: "#4caf50", // Color of the progress bar
+        progressBarPausedColor: "#ffa500", // Color when paused
+        progressBarBackgroundColor: "#ccc", // Background of progress bar
+        width: 550, // Module width
+        height: 400, // Module height
+        fontSize: "14px", // Content font size
+        contentFontSize: "14px", // Description font size
+        headerFontSize: "16px", // Header font size
+        audioPosterSize: 200, // Album art size (Audio)
+        videoPosterWidth: 150, // Poster width (Movies/Shows)
+        videoPosterHeight: 200, // Poster height (Movies/Shows)
+    }
 }
-How to Find Your Jellyfin API Key and User ID
-API Key: In the Jellyfin Web UI, go to Dashboard > API Keys, or create a new one in Users > Advanced > API Keys.
-User ID:
-Go to Dashboard > Users in the Jellyfin Web UI.
-Click on your username and check the URL for the userId (e.g., ?userId=123456).
-Alternatively, call /Users from the Jellyfin API with your API key to retrieve your user ID.
-How It Works
-Now Playing:
-
-If a user is actively watching something on Jellyfin, the module displays the "Now Playing" item with a poster, title, and progress bar.
-If the media is paused, the progress bar is displayed in red. If it's playing, the bar is green.
-Recently Added:
-
-If no "Now Playing" content is detected, the module shows recently added items, cycling through them one by one.
-Offline Detection:
-
-If Jellyfin is unreachable, the module hides itself automatically and displays no content. It checks again at the next updateInterval and reappears if Jellyfin is back online.
-Styling & Layout
-Layout Overview
-Posters are shown on the left in a fixed-width column (e.g., 120px wide).
-Text Content (e.g., title, certificate, overview) appears in a flexible column on the right.
-CSS Adjustments
-You can modify the module's CSS file (MMM-Jellyfin.css) for further customization. For example:
-
-Adjust the poster size:
-css
-Copy
-.jellyfin-wrapper img {
-  width: 120px;
-  height: 200px;
-  object-fit: cover;
-}
-Set a maximum width for the text container:
-css
-Copy
-.jellyfin-wrapper .details {
-  max-width: 300px;
-}
-Example Output
-Now Playing
-When "Now Playing" content is detected:
-
-diff
-Copy
-+-----------------------------+
-| [Poster]  Title: Movie Name |
-|           Progress: ▓▓▓▓░░ |
-+-----------------------------+
-Recently Added
-When displaying "Recently Added" items:
-
-yaml
-Copy
-+-----------------------------+
-| [Poster]  Title: Movie Name |
-|           Certificate: 15   |
-|           Premiere: 2024-12 |
-|           Overview: ...     |
-+-----------------------------+
-Troubleshooting
-Module Doesn’t Appear:
-
-Verify your Jellyfin API key and server URL are correct.
-Check your MagicMirror logs (pm2 logs or the terminal output) for errors.
-Nothing Shows When Playing Something:
-
-Ensure you’re signed in with the same Jellyfin user specified in your config.js.
-Check the /Sessions endpoint manually to confirm "Now Playing" data is available.
-Module Doesn’t Hide When Offline:
-
-Verify your node_helper.js sends the "JELLYFIN_OFFLINE" notification on errors.
-Contributing
-Feel free to open issues or submit pull requests if you’d like to enhance the module further. All contributions are welcome! 🚀
-
-License
+🛠 API Setup
+Jellyfin API Key
+Open Jellyfin → Go to Dashboard → API Keys.
+Click New API Key, give it a name, and copy the key.
+Paste it into config.js under apiKey.
+Last.fm API Key (for Audio)
+Go to Last.fm API.
+Create an account (if needed) and get an API key.
+Paste it into config.js under lastFmApiKey.
+🎨 Layout & UI
+The poster is displayed for Movies & Shows.
+The album art is displayed for Audio, along with Last.fm data (if available).
+The progress bar is shown when media is playing.
+Recently Added cycles through new content automatically.
+💡 Notes
+If Jellyfin is down, the module will hide itself until it's back online.
+The module only refreshes Recently Added if new items are found.
+Now Playing takes priority over Recently Added when media is playing.
+Audio requires Last.fm API key for artist descriptions.
+🚀 Roadmap & Future Features
+✅ Now Playing & Recently Added Support
+✅ Last.fm Artist Bio for Audio
+✅ Dynamic UI Layout
+✅ Hide Module When Jellyfin is Down
+⏳ Option for Recently Added TV Shows and Music
+⏳ Fix the delay in the progress bar updating.
+💬 Support & Contributions
+Found a bug? Have a feature request?
+Open an issue or pull request on GitHub.
+📜 License
 This module is licensed under the MIT License.
+Feel free to modify and use it for personal projects.
+
