@@ -1,4 +1,4 @@
-let serverUrl, apiKey, userId; // Declare variables to be set dynamically
+let serverUrl, apiKey, userId, lastFmApiKey; // Declare variables to be set dynamically
 
 let checkInterval = 60000; // Default 60 seconds
 let activityCheckInterval = 10000; // Default 10 seconds for activity log check
@@ -19,7 +19,7 @@ let moduleConfig = {
     checkInterval: 60000,
     activityCheckInterval: 10000,
     recentlyAddedCheckInterval: 3600000, // Default 60 mins
-    headerPrefix: 'Media Center', // Default header prefix
+    headerPrefix: 'Our Cinema', // Default header prefix
     width: 500,
     height: 450,
     fontSize: '14px', // Configurable font size for remaining time
@@ -45,6 +45,7 @@ Module.register('MMM-Jellyfin', {
         serverUrl = moduleConfig.serverUrl;
         apiKey = moduleConfig.apiKey;
         userId = moduleConfig.userId;
+        lastFmApiKey = moduleConfig.lastFmApiKey;
 
         if (!serverUrl || !apiKey || !userId) {
             console.error("MMM-JellyNew: Missing required configuration (serverUrl, apiKey, or userId). Module will not function correctly.");
@@ -447,7 +448,7 @@ Module.register('MMM-Jellyfin', {
         const apiKey = this.config.lastFmApiKey; // Replace with your Last.fm API key
         const url = `https://ws.audioscrobbler.com/2.0/?method=artist.getinfo&artist=${encodeURIComponent(
             artistName
-        )}&api_key=${apiKey}&format=json`;
+        )}&api_key=${lastFmApiKey}&format=json`;
 
         const response = await fetch(url);
         if (!response.ok) {
